@@ -6,6 +6,11 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
+beautifulsoup4 = "*"
+openpyxl = "*"
+pandas = "*"
+requests = "*"
+tabula-py = "*"
 
 [requires]
 python_version = "3.8"
