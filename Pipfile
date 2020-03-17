@@ -13,6 +13,7 @@ beautifulsoup4 = "*"
 openpyxl = "*"
 pandas = "*"
 requests = "*"
+simplejson = "*"
 tabula-py = "*"
 
 [requires]
