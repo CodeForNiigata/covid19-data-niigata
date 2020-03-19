@@ -13,6 +13,7 @@ discharges_summary_url = f"{base_url}/export?format=csv&gid=1730758426"
 inspections_url = f"{base_url}/export?format=csv&gid=940251992"
 inspections_summary_url = f"{base_url}/export?format=csv&gid=916719826"
 main_summary_url = f"{base_url}/export?format=csv&gid=2018159084"
+updated_at_url = f"{base_url}/export?format=csv&gid=850699515"
 
 contacts_table = pd.read_csv(contacts_url)
 querents_table = pd.read_csv(querents_url)
@@ -22,6 +23,7 @@ discharges_summary_table = pd.read_csv(discharges_summary_url)
 inspections_table = pd.read_csv(inspections_url)
 inspections_summary_table = pd.read_csv(inspections_summary_url)
 main_summary_table = pd.read_csv(main_summary_url)
+updated_at_table = pd.read_csv(updated_at_url, index_col=0)
 
 _contacts = contacts_table[querents_table['日付'].isna() == False]
 contacts = _contacts.to_dict(orient='records')
@@ -65,36 +67,35 @@ main_summaries = _main_summary.to_dict(orient='records')
 main_summary = main_summaries[0]
 
 now = datetime.datetime.now()
-date = now.strftime("%Y/%m/%d %H:%M")  # TODO ダミー、あとでなおす
 last_update = now.strftime("%Y/%m/%d %H:%M")
 
 data = {
     'contacts': {
-        'date': date,
+        'date': updated_at_table.loc['contacts', 'updated_at'],
         'data': contacts
     },
     'querents': {
-        'date': date,
+        'date': updated_at_table.loc['querents', 'updated_at'],
         'data': querents
     },
     'patients': {
-        'date': date,
+        'date': updated_at_table.loc['patients', 'updated_at'],
         'data': patients
     },
     'patients_summary': {
-        'date': date,
+        'date': updated_at_table.loc['patients_summary', 'updated_at'],
         'data': patients_summary
     },
     'discharges_summary': {
-        'date': date,
+        'date': updated_at_table.loc['discharges_summary', 'updated_at'],
         'data': discharges_summary
     },
     'inspections': {
-        'date': date,
+        'date': updated_at_table.loc['inspections', 'updated_at'],
         'data': inspections
     },
     'inspections_summary': {
-        'date': date,
+        'date': updated_at_table.loc['inspections_summary', 'updated_at'],
         'labels': inspections_summary_label,
         'data': inspections_summary_data
     },
