@@ -19,7 +19,7 @@ kensa_url = links[0].get('href')
 
 houkoku_pdf = tabula.read_pdf(base_url + houkoku_url, pages='all')
 houkoku_table = houkoku_pdf[0]
-houkoku_table.columns = ['no', 'case_no', 'date', 'age', 'sex', 'address', 'job', 'tokou']
+houkoku_table.columns = ['no', 'case_no', 'date', 'age', 'sex', 'address', 'job']
 houkoku_table['date'] = '2020年' + houkoku_table['date']
 houkoku_table['date'] = pd.to_datetime(houkoku_table['date'], format='%Y年%m月%d日')
 houkoku_table['address'] = houkoku_table['address'].replace('\r', '', regex=True)
