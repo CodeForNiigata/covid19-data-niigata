@@ -5,6 +5,7 @@ verify_ssl = true
 
 [scripts]
 main = "python src/main.py"
+gs = "python src/gs.py"
 
 [dev-packages]
 
