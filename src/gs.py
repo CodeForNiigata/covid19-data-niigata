@@ -31,6 +31,7 @@ _querents['9-17時'] = _querents['9-17時'].astype(int)
 querents = _querents.to_dict(orient='records')
 
 _patients = patients_table
+_patients['年代'] = _patients['年代'].str.replace('\(乳幼児\)', '')
 patients = _patients.to_dict(orient='records')
 
 _patients_summary = patients_summary_table[patients_summary_table['日付'].isna() == False]
