@@ -11,4 +11,4 @@ def create_csv(url):
     soudan_table['date'] = soudan_table['date'].str.replace('令和2年 ', '')
     soudan_table['date'] = '2020年' + soudan_table['date']
     soudan_table['date'] = pd.to_datetime(soudan_table['date'], format='%Y年%m月%d日')
-    soudan_table.to_csv('soudan.csv')
+    soudan_table.to_csv('dist/querents.csv')

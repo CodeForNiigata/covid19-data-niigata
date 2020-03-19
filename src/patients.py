@@ -10,4 +10,4 @@ def create_csv(url):
     houkoku_table['date'] = pd.to_datetime(houkoku_table['date'], format='%Y年%m月%d日')
     houkoku_table['address'] = houkoku_table['address'].replace('\r', '', regex=True)
     houkoku_table['job'] = houkoku_table['job'].replace('\r', '', regex=True)
-    houkoku_table.to_csv('houkoku.csv')
+    houkoku_table.to_csv('dist/patients.csv')
