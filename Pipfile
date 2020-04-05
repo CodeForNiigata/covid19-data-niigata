@@ -5,6 +5,9 @@ verify_ssl = true
 
 [scripts]
 main = "python src/main.py"
+pdf = "python src/niigata_pdf.py"
+csv = "python src/niigata_csv.py"
+json = "python src/covid19_json.py"
 
 [dev-packages]
 
