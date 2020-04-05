@@ -25,3 +25,9 @@ jobs:
     - name: Generate Data
       run: |
         pipenv run main
+
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: dist
+        path: dist
