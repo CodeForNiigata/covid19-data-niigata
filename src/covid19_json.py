@@ -1,7 +1,7 @@
+import datetime as dt
+import locale
 import pandas as pd
 import simplejson as json
-import datetime as dt
-
 
 # DATE FORMAT
 FULL_DATETIME = '%Y-%m-%dT%H:%M:%S.000Z'
@@ -14,6 +14,7 @@ NUMBER_OF_A_WEEK = '%w'
 
 
 def main():
+    locale.setlocale(locale.LC_TIME, 'ja_JP.UTF-8')
     create_json()
 
 
