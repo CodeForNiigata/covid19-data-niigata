@@ -1,8 +1,8 @@
 name: CI
 
 on:
-  push:
-    branches: [ develop ]
+  schedule:
+  - cron: 0 15 * * *
 
 jobs:
   build:
@@ -22,12 +22,13 @@ jobs:
         pip install pipenv --upgrade-strategy=only-if-needed
         pipenv install --dev
 
-    - name: Generate Data
+    - name: Build and commit
       run: |
+        git config user.name "circled9-bot"
+        git config user.email "matsui+bot@kaffeine.jp"
+        git remote set-url origin https://${{github.actor}}:${{secrets.GITHUB_TOKEN}}@github.com/${{github.repository}}.git
+        git checkout develop
         pipenv run main
-
-    - name: Archive artifacts
-      uses: actions/upload-artifact@v1
-      with:
-        name: dist
-        path: dist
+        git add dist
+        git commit -m "daily update"
+        git push origin develop || true
