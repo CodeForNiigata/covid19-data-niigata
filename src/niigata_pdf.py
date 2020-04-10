@@ -10,6 +10,7 @@ base_url = 'https://www.pref.niigata.lg.jp'
 
 
 def main():
+    create_hospitalization()
     create_update_date()
     download_pdfs()
 
@@ -60,6 +61,40 @@ def create_update_date():
     df.to_csv('./dist/csv/updated_at.csv', index=False)
 
 
+def create_hospitalization():
+    page_url = base_url + '/sec/kenko/covid19.html'
+    page = requests.get(page_url)
+    soup = BeautifulSoup(page.content, 'html.parser')
+
+    in_count = ''
+    paragraphs = soup.select('p:contains("・入院中（準備中含む）：")')
+    if len(paragraphs) == 1:
+        in_text = paragraphs[0].get_text()
+        in_match = re.search('.*・入院中（準備中含む）：(\w+)例.*', in_text, re.U)
+        [in_count] = in_match.groups()
+        in_count = to_half_width(in_count)
+
+    out_count = ''
+    paragraphs = soup.select('p:contains("・退院済：")')
+    if len(paragraphs) == 1:
+        out_text = paragraphs[0].get_text()
+        out_match = re.search('.*・退院済：(\w+)例.*', out_text, re.U)
+        [out_count] = out_match.groups()
+        out_count = to_half_width(out_count)
+
+    df = pd.DataFrame({
+        'type': [
+            'hospitalization',
+            'discharge',
+        ],
+        'count': [
+            int(in_count),
+            int(out_count),
+        ]
+    })
+    df.to_csv('./dist/csv/hospitalization.csv', index=False)
+
+
 def to_half_width(text):
     return text.translate(str.maketrans({chr(0xFF01 + i): chr(0x21 + i) for i in range(94)}))
 
@@ -97,5 +132,4 @@ def download_pdfs():
 
 
 if __name__ == '__main__':
-    create_update_date()
-    download_pdfs()
+    main()
