@@ -9,12 +9,10 @@ DATETIME = '%Y/%m/%d %H:%M'
 DATE = '%Y-%m-%d'
 SHORT_DATE = '%m/%d'
 SHORT_DATE_NO_ZERO_PADDING = '%-m/%-d'
-DAY_OF_A_WEEK = '%a'
 NUMBER_OF_A_WEEK = '%w'
 
 
 def main():
-    locale.setlocale(locale.LC_TIME, 'ja_JP.UTF-8')
     create_json()
 
 
@@ -73,13 +71,16 @@ def get_querents():
     call_center['_count'] = call_center['相談件数']
 
     call_center['日付'] = call_center['_date'].dt.strftime(FULL_DATETIME)
-    call_center['曜日'] = call_center['_date'].dt.strftime(DAY_OF_A_WEEK)
     call_center['9-17時'] = call_center['_count']
     call_center['17-翌9時'] = 0
     call_center['date'] = call_center['_date'].dt.strftime(DATE)
-    call_center['w'] = call_center['_date'].dt.strftime(NUMBER_OF_A_WEEK)
+    call_center['w'] = call_center['_date'].dt.strftime(NUMBER_OF_A_WEEK).astype(int)
     call_center['short_date'] = call_center['_date'].dt.strftime(SHORT_DATE)
     call_center['小計'] = call_center['_count']
+
+    day_of_a_weeks = get_day_of_a_weeks()
+    call_center = call_center.join(day_of_a_weeks, on='w', rsuffix='_week')
+    call_center['曜日'] = call_center['_day_of_a_week']
 
     call_center = call_center[[
         '日付',
@@ -101,12 +102,16 @@ def get_patients():
     patients['_date'] = pd.to_datetime(patients['公表_年月日'], format=DATE)
 
     patients['リリース日'] = patients['_date'].dt.strftime(FULL_DATETIME)
-    patients['曜日'] = patients['_date'].dt.strftime(DAY_OF_A_WEEK)
     patients['居住地'] = patients['患者_居住地']
     patients['年代'] = patients['患者_年代']
     patients['性別'] = patients['患者_性別']
-    patients['退院'] = ''
+    patients['退院'] = None
     patients['date'] = patients['_date'].dt.strftime(DATE)
+
+    patients['w'] = patients['_date'].dt.strftime(NUMBER_OF_A_WEEK).astype(int)
+    day_of_a_weeks = get_day_of_a_weeks()
+    patients = patients.join(day_of_a_weeks, on='w', rsuffix='_week')
+    patients['曜日'] = patients['_day_of_a_week']
 
     patients = patients[[
         'リリース日',
@@ -266,6 +271,13 @@ def get_main_summary():
             }
         ]
     }
+
+
+def get_day_of_a_weeks():
+    return pd.DataFrame({
+        'w': [0, 1, 2, 3, 4, 5, 6],
+        '_day_of_a_week': ['日', '月', '火', '水', '木', '金', '土'],
+    })
 
 
 if __name__ == '__main__':
