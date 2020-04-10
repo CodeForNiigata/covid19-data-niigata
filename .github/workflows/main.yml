@@ -2,7 +2,7 @@ name: CI
 
 on:
   schedule:
-  - cron: 0 15 * * *
+  - cron: 0 12 * * *
 
 jobs:
   build:
@@ -27,8 +27,8 @@ jobs:
         git config user.name "circled9-bot"
         git config user.email "matsui+bot@kaffeine.jp"
         git remote set-url origin https://${{github.actor}}:${{secrets.GITHUB_TOKEN}}@github.com/${{github.repository}}.git
-        git checkout develop
+        git checkout master
         pipenv run main
         git add dist
         git commit -m "daily update"
-        git push origin develop || true
+        git push origin master || true
