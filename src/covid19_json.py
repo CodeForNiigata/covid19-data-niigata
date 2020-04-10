@@ -218,7 +218,8 @@ def get_inspections_summary():
 def get_main_summary():
     test_count = pd.read_csv('./dist/csv/150002_niigata_covid19_test_count.csv')
     confirm_negative = pd.read_csv('./dist/csv/150002_niigata_covid19_confirm_negative.csv')
-
+    hospitalization = pd.read_csv('./dist/csv/hospitalization.csv')
+    hospitalization = hospitalization.set_index('type')
     test_count['_date'] = test_count['実施_年月日']
     test_count['_test_count'] = test_count['検査実施_件数']
     test_count = test_count[['_date', '_test_count']]
@@ -241,7 +242,7 @@ def get_main_summary():
                 'children': [
                     {
                         'attr': '入院中',
-                        'value': None,
+                        'value': int(hospitalization.loc['hospitalization']['count']),
                         'children': [
                             {
                                 'attr': '軽症・中等症',
@@ -255,7 +256,7 @@ def get_main_summary():
                     },
                     {
                         'attr': '退院',
-                        'value': None
+                        'value': int(hospitalization.loc['discharge']['count'])
                     },
                     {
                         'attr': '死亡',
