@@ -211,11 +211,11 @@ def get_inspections_summary():
     test_count['_test_count'] = test_count['検査実施_件数']
 
     test_count['labels'] = test_count['_date'].dt.strftime(SHORT_DATE_NO_ZERO_PADDING)
-    test_count['都内'] = test_count['_test_count']
+    test_count['県内'] = test_count['_test_count']
     test_count['その他'] = 0
 
     labels = test_count['labels']
-    data = test_count[['都内', 'その他']]
+    data = test_count[['県内', 'その他']]
 
     return (
         labels.values.tolist(),
