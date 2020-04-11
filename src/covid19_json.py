@@ -27,6 +27,8 @@ def create_json():
     test_last_date = updated_at.at['test_count', 'updated_at']
     call_center_last_date = updated_at.at['call_center', 'updated_at']
 
+    (inspections_labels, inspections_data) = get_inspections_summary()
+
     data = {
         'contacts': {
             'date': None,
@@ -54,7 +56,8 @@ def create_json():
         },
         'inspections_summary': {
             'date': test_last_date,
-            'data': get_inspections_summary(),
+            'labels': inspections_labels,
+            'data': inspections_data,
         },
         'lastUpdate': test_last_date,
         'main_summary': get_main_summary(),
@@ -214,10 +217,10 @@ def get_inspections_summary():
     labels = test_count['labels']
     data = test_count[['都内', 'その他']]
 
-    return {
-        'labels': labels.values.tolist(),
-        'data': data.to_dict(orient='list'),
-    }
+    return (
+        labels.values.tolist(),
+        data.to_dict(orient='list'),
+    )
 
 
 def get_main_summary():
