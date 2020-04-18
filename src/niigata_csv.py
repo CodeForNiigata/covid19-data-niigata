@@ -24,9 +24,10 @@ def get_city_code():
 
 def get_patients():
     houkoku_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_patients.pdf', lattice=True, pages='all')
-    patients = houkoku_pdf[0]
+    patients = pd.concat(houkoku_pdf)
     patients.columns = ['患者No.', '_', '判明日', '年代', '性別', '居住地', '職業']
 
+    # きれいなデータに
     patients['判明日'] = '2020年' + patients['判明日']
     patients['判明日'] = pd.to_datetime(patients['判明日'], format='%Y年%m月%d日')
     patients['判明日'] = patients['判明日'].dt.strftime('%Y-%m-%d')
@@ -34,7 +35,6 @@ def get_patients():
     patients['年代'] = patients['年代'].str.replace('\(乳幼児\)', '')
 
     patients['居住地'] = patients['居住地'].str.replace('\r', '', regex=True)
-    patients['居住地'] = patients['居住地'].str.replace('調査中', '新潟市')
     patients['居住地'] = patients['居住地'].str.replace('東京都\(', '')
     patients['居住地'] = patients['居住地'].str.replace('\)', '')
 
@@ -46,40 +46,62 @@ def get_patients():
 
 def get_tests():
     kensa_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_test.pdf', lattice=True, pages='all')
-    tests = kensa_pdf[0]
+    [first, rest] = np.split(kensa_pdf, [1])
+    first = pd.concat(first)
+    rest = pd.concat(rest)
 
+    # 最初のページだけ例外的な対応をする
+    first['結果判明日'] = first['結果判明日'].str.replace('令和2年', '2月29日')
+    first['曜日'] = first['曜日'].str.replace('2月', '土')
+
+    # 年号がある列のズレを補正する
+    rest.columns = ['結果判明日', '曜日', '検査件数', 'うち陽性件数', '_']
+    rest['_年号'] = rest['結果判明日'] == '令和2年'
+    rest['結果判明日'][rest['_年号']] = rest['曜日']
+    rest['曜日'][rest['_年号']] = rest['検査件数']
+    rest['検査件数'][rest['_年号']] = rest['うち陽性件数']
+    rest['うち陽性件数'][rest['_年号']] = rest['_']
+
+    tests = pd.concat([first, rest])
     tests = tests[tests['結果判明日'] != '計']
 
-    tests['結果判明日'] = tests['結果判明日'].str.replace('令和2年', '2月29日')
+    # 型をいい感じに
     tests['結果判明日'] = '2020年' + tests['結果判明日']
     tests['結果判明日'] = pd.to_datetime(tests['結果判明日'], format='%Y年%m月%d日')
     tests['結果判明日'] = tests['結果判明日'].dt.strftime('%Y-%m-%d')
 
-    tests['曜日'] = tests['曜日'].str.replace('2月', '土')
+    tests['検査件数'] = tests['検査件数'].astype(int)
 
     tests['うち陽性件数'] = tests['うち陽性件数'].fillna(0)
+    tests['うち陽性件数'] = tests['うち陽性件数'].astype(int)
 
     return tests
 
 
 def get_call_centers():
     soudan_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_call_center.pdf', lattice=True, pages='all')
-    call_centers = soudan_pdf[0]
-
+    call_centers = pd.concat(soudan_pdf)
     call_centers.columns = ['日', '曜日', '相談対応件数', '帰国者・接触者外来を紹介した人数', '備考', '_']
-
-    call_centers.iat[0, 0] = call_centers.iat[0, 1]
-    call_centers.iat[0, 1] = call_centers.iat[0, 2]
-    call_centers.iat[0, 2] = call_centers.iat[0, 3]
-    call_centers.iat[0, 3] = call_centers.iat[0, 4]
-    call_centers.iat[0, 4] = call_centers.iat[0, 5]
-    call_centers.iat[0, 5] = None
-
     call_centers = call_centers[call_centers['日'] != '計']
 
+    # 年号がある列のズレを補正する
+    call_centers['_年号'] = call_centers['日'] == '令和2年'
+    call_centers['日'][call_centers['_年号']] = call_centers['曜日']
+    call_centers['曜日'][call_centers['_年号']] = call_centers['相談対応件数']
+    call_centers['相談対応件数'][call_centers['_年号']] = call_centers['帰国者・接触者外来を紹介した人数']
+    call_centers['帰国者・接触者外来を紹介した人数'][call_centers['_年号']] = call_centers['備考']
+    call_centers['備考'][call_centers['_年号']] = call_centers['_']
+
+    # 型をいい感じに
     call_centers['日'] = '2020年' + call_centers['日']
     call_centers['日'] = pd.to_datetime(call_centers['日'], format='%Y年%m月%d日')
     call_centers['日'] = call_centers['日'].dt.strftime('%Y-%m-%d')
+
+    call_centers['相談対応件数'] = call_centers['相談対応件数'].astype(int)
+
+    call_centers['帰国者・接触者外来を紹介した人数'] = call_centers['帰国者・接触者外来を紹介した人数'].astype(int)
+
+    call_centers = call_centers[['日', '曜日', '相談対応件数', '帰国者・接触者外来を紹介した人数', '備考']]
 
     return call_centers
 
