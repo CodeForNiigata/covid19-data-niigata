@@ -4,9 +4,7 @@ import tabula
 
 
 def main():
-    (city_table, ku_table) = get_city_code()
-
-    create_positive_patients(city_table, ku_table)
+    create_positive_patients()
     create_inspectors()
     create_inspections_performed()
     create_negative_confirmations()
@@ -87,7 +85,8 @@ def get_call_centers():
 
 
 # 陽性患者属性
-def create_positive_patients(city_table, ku_table):
+def create_positive_patients():
+    (city_table, ku_table) = get_city_code()
     positive_patient = get_patients()
 
     positive_patient['city_name'] = positive_patient['居住地']
