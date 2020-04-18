@@ -26,64 +26,64 @@ def get_city_code():
 
 def get_patients():
     houkoku_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_patients.pdf', lattice=True, pages='all')
-    positive_patient = houkoku_pdf[0]
-    positive_patient.columns = ['患者No.', '_', '判明日', '年代', '性別', '居住地', '職業']
+    patients = houkoku_pdf[0]
+    patients.columns = ['患者No.', '_', '判明日', '年代', '性別', '居住地', '職業']
 
-    positive_patient['判明日'] = '2020年' + positive_patient['判明日']
-    positive_patient['判明日'] = pd.to_datetime(positive_patient['判明日'], format='%Y年%m月%d日')
-    positive_patient['判明日'] = positive_patient['判明日'].dt.strftime('%Y-%m-%d')
+    patients['判明日'] = '2020年' + patients['判明日']
+    patients['判明日'] = pd.to_datetime(patients['判明日'], format='%Y年%m月%d日')
+    patients['判明日'] = patients['判明日'].dt.strftime('%Y-%m-%d')
 
-    positive_patient['年代'] = positive_patient['年代'].str.replace('\(乳幼児\)', '')
+    patients['年代'] = patients['年代'].str.replace('\(乳幼児\)', '')
 
-    positive_patient['居住地'] = positive_patient['居住地'].str.replace('\r', '', regex=True)
-    positive_patient['居住地'] = positive_patient['居住地'].str.replace('調査中', '新潟市')
-    positive_patient['居住地'] = positive_patient['居住地'].str.replace('東京都\(', '')
-    positive_patient['居住地'] = positive_patient['居住地'].str.replace('\)', '')
+    patients['居住地'] = patients['居住地'].str.replace('\r', '', regex=True)
+    patients['居住地'] = patients['居住地'].str.replace('調査中', '新潟市')
+    patients['居住地'] = patients['居住地'].str.replace('東京都\(', '')
+    patients['居住地'] = patients['居住地'].str.replace('\)', '')
 
-    positive_patient['職業'] = positive_patient['職業'].str.replace('\r', '', regex=True)
-    positive_patient['職業'] = positive_patient['職業'].str.replace('―', '')
+    patients['職業'] = patients['職業'].str.replace('\r', '', regex=True)
+    patients['職業'] = patients['職業'].str.replace('―', '')
 
-    return positive_patient
+    return patients
 
 
 def get_tests():
     kensa_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_test.pdf', lattice=True, pages='all')
-    inspectors = kensa_pdf[0]
+    tests = kensa_pdf[0]
 
-    inspectors = inspectors[inspectors['結果判明日'] != '計']
+    tests = tests[tests['結果判明日'] != '計']
 
-    inspectors['結果判明日'] = inspectors['結果判明日'].str.replace('令和2年', '2月29日')
-    inspectors['結果判明日'] = '2020年' + inspectors['結果判明日']
-    inspectors['結果判明日'] = pd.to_datetime(inspectors['結果判明日'], format='%Y年%m月%d日')
-    inspectors['結果判明日'] = inspectors['結果判明日'].dt.strftime('%Y-%m-%d')
+    tests['結果判明日'] = tests['結果判明日'].str.replace('令和2年', '2月29日')
+    tests['結果判明日'] = '2020年' + tests['結果判明日']
+    tests['結果判明日'] = pd.to_datetime(tests['結果判明日'], format='%Y年%m月%d日')
+    tests['結果判明日'] = tests['結果判明日'].dt.strftime('%Y-%m-%d')
 
-    inspectors['曜日'] = inspectors['曜日'].str.replace('2月', '土')
+    tests['曜日'] = tests['曜日'].str.replace('2月', '土')
 
-    inspectors['うち陽性件数'] = inspectors['うち陽性件数'].fillna(0)
+    tests['うち陽性件数'] = tests['うち陽性件数'].fillna(0)
 
-    return inspectors
+    return tests
 
 
 def get_call_centers():
     soudan_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_call_center.pdf', lattice=True, pages='all')
-    call_center_consultations = soudan_pdf[0]
+    call_centers = soudan_pdf[0]
 
-    call_center_consultations.columns = ['日', '曜日', '相談対応件数', '帰国者・接触者外来を紹介した人数', '備考', '_']
+    call_centers.columns = ['日', '曜日', '相談対応件数', '帰国者・接触者外来を紹介した人数', '備考', '_']
 
-    call_center_consultations.iat[0, 0] = call_center_consultations.iat[0, 1]
-    call_center_consultations.iat[0, 1] = call_center_consultations.iat[0, 2]
-    call_center_consultations.iat[0, 2] = call_center_consultations.iat[0, 3]
-    call_center_consultations.iat[0, 3] = call_center_consultations.iat[0, 4]
-    call_center_consultations.iat[0, 4] = call_center_consultations.iat[0, 5]
-    call_center_consultations.iat[0, 5] = None
+    call_centers.iat[0, 0] = call_centers.iat[0, 1]
+    call_centers.iat[0, 1] = call_centers.iat[0, 2]
+    call_centers.iat[0, 2] = call_centers.iat[0, 3]
+    call_centers.iat[0, 3] = call_centers.iat[0, 4]
+    call_centers.iat[0, 4] = call_centers.iat[0, 5]
+    call_centers.iat[0, 5] = None
 
-    call_center_consultations = call_center_consultations[call_center_consultations['日'] != '計']
+    call_centers = call_centers[call_centers['日'] != '計']
 
-    call_center_consultations['日'] = '2020年' + call_center_consultations['日']
-    call_center_consultations['日'] = pd.to_datetime(call_center_consultations['日'], format='%Y年%m月%d日')
-    call_center_consultations['日'] = call_center_consultations['日'].dt.strftime('%Y-%m-%d')
+    call_centers['日'] = '2020年' + call_centers['日']
+    call_centers['日'] = pd.to_datetime(call_centers['日'], format='%Y年%m月%d日')
+    call_centers['日'] = call_centers['日'].dt.strftime('%Y-%m-%d')
 
-    return call_center_consultations
+    return call_centers
 
 
 # 陽性患者属性
