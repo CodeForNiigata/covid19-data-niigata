@@ -35,7 +35,9 @@ def create_update_date():
     paragraphs = soup.select('h3:contains("県内における「帰国者・接触者相談センター」への相談件数及び検査件数") + p')
     if len(paragraphs) == 1:
         soudan_kensa_text = paragraphs[0].get_text()
-        soudan_kensa_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日(\w+)時(\w+)分.*', soudan_kensa_text, re.U)
+        soudan_kensa_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日(\w+)：(\w+).*', soudan_kensa_text, re.U)
+        if soudan_kensa_matches is None:
+            soudan_kensa_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日(\w+)時(\w+)分.*', soudan_kensa_text, re.U)
         (_, month, day, hour, _) = soudan_kensa_matches.groups()
         month = to_half_width(month).zfill(2)
         day = to_half_width(day).zfill(2)
