@@ -36,6 +36,7 @@ def get_patients():
 
     patients['居住地'] = patients['居住地'].str.replace('\r', '', regex=True)
     patients['居住地'] = patients['居住地'].str.replace('東京都\(', '')
+    patients['居住地'] = patients['居住地'].str.replace('神戸市\(', '')
     patients['居住地'] = patients['居住地'].str.replace('\)', '')
 
     patients['職業'] = patients['職業'].str.replace('\r', '', regex=True)
