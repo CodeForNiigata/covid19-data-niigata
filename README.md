@@ -1,7 +1,7 @@
 get niigata covid19 data
 ====
 
-![CI](https://github.com/circled9/covid19-data-niigata/workflows/CI/badge.svg)
+![CI](https://github.com/CodeForNiigata/covid19-data-niigata/workflows/CI/badge.svg)
 
 新潟県のWebサイトのコロナに関する情報からデータを生成するスクリプトです。
 
