@@ -72,7 +72,7 @@ def create_hospitalization():
     paragraphs = soup.select('p:contains("・入院中（準備中含む）：")')
     if len(paragraphs) == 1:
         in_text = paragraphs[0].get_text()
-        in_match = re.search('.*・入院中（準備中含む）：(\w+)例.*', in_text, re.U)
+        in_match = re.search('.*・入院中（準備中含む）：[^0-9^０-９]*([0-9０-９]+)例.*', in_text, re.U)
         [in_count] = in_match.groups()
         in_count = to_half_width(in_count)
 
@@ -80,7 +80,7 @@ def create_hospitalization():
     paragraphs = soup.select('p:contains("・退院済：")')
     if len(paragraphs) == 1:
         out_text = paragraphs[0].get_text()
-        out_match = re.search('.*・退院済：(\w+)例.*', out_text, re.U)
+        out_match = re.search('.*・退院済：[^0-9^０-９]*([0-9０-９]+)例.*', out_text, re.U)
         [out_count] = out_match.groups()
         out_count = to_half_width(out_count)
 
