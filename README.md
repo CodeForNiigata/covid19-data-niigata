@@ -35,3 +35,19 @@ $ pipenv run json
 ```
 $ pipenv install
 ```
+
+## Note
+
+CIで毎日自動で実行して結果を更新しています。
+
+CIが失敗したなどの理由でCIを手動で実行する場合は下記のコマンドを実行してください。
+
+なお、<personal_token> には、"repo"の権限が付いたpersonal access tokenを指定してください。
+
+```bash
+$ curl -X POST -H "Authorization: token <personal_token>" \
+    -H "Content-Type: application/json" \
+    https://api.github.com/repos/CodeForNiigata/covid19-data-niigata/dispatches \
+    --data '{"event_type":"manual_build"}'
+```
+
