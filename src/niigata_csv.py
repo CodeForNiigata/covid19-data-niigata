@@ -46,24 +46,14 @@ def get_patients():
 
 
 def get_tests():
-    kensa_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_test.pdf', lattice=True, pages='all')
-    [first, rest] = np.split(kensa_pdf, [1])
-    first = pd.concat(first)
-    rest = pd.concat(rest)
+    kensa_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_test.pdf', pages='all')
+    tests = kensa_pdf[0]
+    tests.columns = ['結果判明日', '曜日', '検査件数', 'うち陽性件数']
 
-    # 最初のページだけ例外的な対応をする
-    first['結果判明日'] = first['結果判明日'].str.replace('令和2年', '2月29日')
-    first['曜日'] = first['曜日'].str.replace('2月', '土')
-
-    # 年号がある列のズレを補正する
-    rest.columns = ['結果判明日', '曜日', '検査件数', 'うち陽性件数', '_']
-    rest['_年号'] = rest['結果判明日'] == '令和2年'
-    rest['結果判明日'][rest['_年号']] = rest['曜日']
-    rest['曜日'][rest['_年号']] = rest['検査件数']
-    rest['検査件数'][rest['_年号']] = rest['うち陽性件数']
-    rest['うち陽性件数'][rest['_年号']] = rest['_']
-
-    tests = pd.concat([first, rest])
+    # いらないデータの除去
+    tests = tests[tests['結果判明日'] != '令和2年']  # 2月のデータ
+    tests = tests[tests['結果判明日'] != '3月']
+    tests = tests[tests['結果判明日'] != '4月']
     tests = tests[tests['結果判明日'] != '計']
 
     # 型をいい感じに
@@ -76,7 +66,30 @@ def get_tests():
     tests['うち陽性件数'] = tests['うち陽性件数'].fillna(0)
     tests['うち陽性件数'] = tests['うち陽性件数'].astype(int)
 
+    # csvから過去データを取得する
+    old = get_old_tests()
+    days = tests['結果判明日']
+    old = old[old['結果判明日'].isin(days) == False]
+
+    tests = pd.concat([old, tests])
     return tests
+
+
+def get_old_tests():
+    test = pd.read_csv('./dist/csv/150002_niigata_covid19_test_count.csv')
+    test = test.rename(columns={'実施_年月日': '結果判明日'})
+    test = test.set_index('結果判明日')
+
+    negative = pd.read_csv('./dist/csv/150002_niigata_covid19_confirm_negative.csv')
+    negative = negative.rename(columns={'完了_年月日': '結果判明日'})
+    negative = negative.set_index('結果判明日')
+
+    merged = pd.merge(test, negative, on='結果判明日')
+    merged['検査件数'] = merged['検査実施_件数']
+    merged['うち陽性件数'] = merged['検査実施_件数'] - merged['陰性確認_件数']
+    merged = merged.reset_index()
+    merged = merged[['結果判明日', '検査件数', 'うち陽性件数']]
+    return merged
 
 
 def get_call_centers():
