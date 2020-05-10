@@ -205,7 +205,6 @@ def create_inspections_performed():
 
 
 # 陰性確認数
-# negative_confirmations
 def create_negative_confirmations():
     negative_confirmations = get_tests()
 
