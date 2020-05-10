@@ -66,30 +66,7 @@ def get_tests():
     tests['うち陽性件数'] = tests['うち陽性件数'].fillna(0)
     tests['うち陽性件数'] = tests['うち陽性件数'].astype(int)
 
-    # csvから過去データを取得する
-    old = get_old_tests()
-    days = tests['結果判明日']
-    old = old[old['結果判明日'].isin(days) == False]
-
-    tests = pd.concat([old, tests])
     return tests
-
-
-def get_old_tests():
-    test = pd.read_csv('./dist/csv/150002_niigata_covid19_test_count.csv')
-    test = test.rename(columns={'実施_年月日': '結果判明日'})
-    test = test.set_index('結果判明日')
-
-    negative = pd.read_csv('./dist/csv/150002_niigata_covid19_confirm_negative.csv')
-    negative = negative.rename(columns={'完了_年月日': '結果判明日'})
-    negative = negative.set_index('結果判明日')
-
-    merged = pd.merge(test, negative, on='結果判明日')
-    merged['検査件数'] = merged['検査実施_件数']
-    merged['うち陽性件数'] = merged['検査実施_件数'] - merged['陰性確認_件数']
-    merged = merged.reset_index()
-    merged = merged[['結果判明日', '検査件数', 'うち陽性件数']]
-    return merged
 
 
 def get_call_centers():
@@ -188,6 +165,13 @@ def create_inspectors():
         '検査実施_人数',
         '備考',
     ]]
+
+    # 集計されてしまった部分をCSVから取得する
+    old = pd.read_csv('./dist/csv/150002_niigata_covid19_test_people.csv')
+    days = inspectors['実施_年月日']
+    old = old[old['実施_年月日'].isin(days) == False]
+    inspectors = pd.concat([old, inspectors])
+
     inspectors.to_csv('dist/csv/150002_niigata_covid19_test_people.csv', index=False)
 
 
@@ -210,6 +194,13 @@ def create_inspections_performed():
         '検査実施_件数',
         '備考',
     ]]
+
+    # 集計されてしまった部分をCSVから取得する
+    old = pd.read_csv('./dist/csv/150002_niigata_covid19_test_count.csv')
+    days = inspections_performed['実施_年月日']
+    old = old[old['実施_年月日'].isin(days) == False]
+    inspections_performed = pd.concat([old, inspections_performed])
+
     inspections_performed.to_csv('dist/csv/150002_niigata_covid19_test_count.csv', index=False)
 
 
@@ -234,6 +225,13 @@ def create_negative_confirmations():
         '陰性確認_件数',
         '備考',
     ]]
+
+    # 集計されてしまった部分をCSVから取得する
+    old = pd.read_csv('./dist/csv/150002_niigata_covid19_confirm_negative.csv')
+    days = negative_confirmations['完了_年月日']
+    old = old[old['完了_年月日'].isin(days) == False]
+
+    negative_confirmations = pd.concat([old, negative_confirmations])
     negative_confirmations.to_csv('dist/csv/150002_niigata_covid19_confirm_negative.csv', index=False)
 
 
