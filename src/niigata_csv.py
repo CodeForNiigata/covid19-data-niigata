@@ -95,8 +95,10 @@ def get_old_tests():
 def get_call_centers():
     soudan_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_call_center.pdf', lattice=True, pages='all')
     call_centers = pd.concat(soudan_pdf)
-    call_centers.columns = ['日', '曜日', '相談対応件数', '帰国者・接触者外来を紹介した人数', '備考', '_']
-    call_centers = call_centers[call_centers['日'] != '計']
+    call_centers.columns = ['日', '曜日', '相談対応件数', '帰国者・接触者外来を紹介した人数', '備考']
+    call_centers = call_centers[call_centers['日'].str.endswith('年') == False]
+    call_centers = call_centers[call_centers['日'].str.endswith('月') == False]
+    call_centers = call_centers[call_centers['日'].str.endswith('計') == False]
 
     # 年号がある列のズレを補正する
     call_centers['_年号'] = call_centers['日'] == '令和2年'
@@ -104,7 +106,6 @@ def get_call_centers():
     call_centers['曜日'][call_centers['_年号']] = call_centers['相談対応件数']
     call_centers['相談対応件数'][call_centers['_年号']] = call_centers['帰国者・接触者外来を紹介した人数']
     call_centers['帰国者・接触者外来を紹介した人数'][call_centers['_年号']] = call_centers['備考']
-    call_centers['備考'][call_centers['_年号']] = call_centers['_']
 
     # 型をいい感じに
     call_centers['日'] = '2020年' + call_centers['日']
@@ -255,6 +256,13 @@ def create_call_center_consultations():
         '相談件数',
         '備考',
     ]]
+
+    # 集計されてしまった部分をCSVから取得する
+    old = pd.read_csv('./dist/csv/150002_niigata_covid19_call_center.csv')
+    days = call_center_consultations['受付_年月日']
+    old = old[old['受付_年月日'].isin(days) == False]
+
+    call_center_consultations = pd.concat([old, call_center_consultations])
     call_center_consultations.to_csv('dist/csv/150002_niigata_covid19_call_center.csv', index=False)
 
 
