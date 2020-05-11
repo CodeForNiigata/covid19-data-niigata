@@ -66,37 +66,16 @@ def get_tests():
     tests['うち陽性件数'] = tests['うち陽性件数'].fillna(0)
     tests['うち陽性件数'] = tests['うち陽性件数'].astype(int)
 
-    # csvから過去データを取得する
-    old = get_old_tests()
-    days = tests['結果判明日']
-    old = old[old['結果判明日'].isin(days) == False]
-
-    tests = pd.concat([old, tests])
     return tests
-
-
-def get_old_tests():
-    test = pd.read_csv('./dist/csv/150002_niigata_covid19_test_count.csv')
-    test = test.rename(columns={'実施_年月日': '結果判明日'})
-    test = test.set_index('結果判明日')
-
-    negative = pd.read_csv('./dist/csv/150002_niigata_covid19_confirm_negative.csv')
-    negative = negative.rename(columns={'完了_年月日': '結果判明日'})
-    negative = negative.set_index('結果判明日')
-
-    merged = pd.merge(test, negative, on='結果判明日')
-    merged['検査件数'] = merged['検査実施_件数']
-    merged['うち陽性件数'] = merged['検査実施_件数'] - merged['陰性確認_件数']
-    merged = merged.reset_index()
-    merged = merged[['結果判明日', '検査件数', 'うち陽性件数']]
-    return merged
 
 
 def get_call_centers():
     soudan_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_call_center.pdf', lattice=True, pages='all')
     call_centers = pd.concat(soudan_pdf)
-    call_centers.columns = ['日', '曜日', '相談対応件数', '帰国者・接触者外来を紹介した人数', '備考', '_']
-    call_centers = call_centers[call_centers['日'] != '計']
+    call_centers.columns = ['日', '曜日', '相談対応件数', '帰国者・接触者外来を紹介した人数', '備考']
+    call_centers = call_centers[call_centers['日'].str.endswith('年') == False]
+    call_centers = call_centers[call_centers['日'].str.endswith('月') == False]
+    call_centers = call_centers[call_centers['日'].str.endswith('計') == False]
 
     # 年号がある列のズレを補正する
     call_centers['_年号'] = call_centers['日'] == '令和2年'
@@ -104,7 +83,6 @@ def get_call_centers():
     call_centers['曜日'][call_centers['_年号']] = call_centers['相談対応件数']
     call_centers['相談対応件数'][call_centers['_年号']] = call_centers['帰国者・接触者外来を紹介した人数']
     call_centers['帰国者・接触者外来を紹介した人数'][call_centers['_年号']] = call_centers['備考']
-    call_centers['備考'][call_centers['_年号']] = call_centers['_']
 
     # 型をいい感じに
     call_centers['日'] = '2020年' + call_centers['日']
@@ -187,6 +165,13 @@ def create_inspectors():
         '検査実施_人数',
         '備考',
     ]]
+
+    # 集計されてしまった部分をCSVから取得する
+    old = pd.read_csv('./dist/csv/150002_niigata_covid19_test_people.csv')
+    days = inspectors['実施_年月日']
+    old = old[old['実施_年月日'].isin(days) == False]
+    inspectors = pd.concat([old, inspectors])
+
     inspectors.to_csv('dist/csv/150002_niigata_covid19_test_people.csv', index=False)
 
 
@@ -209,11 +194,17 @@ def create_inspections_performed():
         '検査実施_件数',
         '備考',
     ]]
+
+    # 集計されてしまった部分をCSVから取得する
+    old = pd.read_csv('./dist/csv/150002_niigata_covid19_test_count.csv')
+    days = inspections_performed['実施_年月日']
+    old = old[old['実施_年月日'].isin(days) == False]
+    inspections_performed = pd.concat([old, inspections_performed])
+
     inspections_performed.to_csv('dist/csv/150002_niigata_covid19_test_count.csv', index=False)
 
 
 # 陰性確認数
-# negative_confirmations
 def create_negative_confirmations():
     negative_confirmations = get_tests()
 
@@ -233,6 +224,13 @@ def create_negative_confirmations():
         '陰性確認_件数',
         '備考',
     ]]
+
+    # 集計されてしまった部分をCSVから取得する
+    old = pd.read_csv('./dist/csv/150002_niigata_covid19_confirm_negative.csv')
+    days = negative_confirmations['完了_年月日']
+    old = old[old['完了_年月日'].isin(days) == False]
+
+    negative_confirmations = pd.concat([old, negative_confirmations])
     negative_confirmations.to_csv('dist/csv/150002_niigata_covid19_confirm_negative.csv', index=False)
 
 
@@ -255,6 +253,13 @@ def create_call_center_consultations():
         '相談件数',
         '備考',
     ]]
+
+    # 集計されてしまった部分をCSVから取得する
+    old = pd.read_csv('./dist/csv/150002_niigata_covid19_call_center.csv')
+    days = call_center_consultations['受付_年月日']
+    old = old[old['受付_年月日'].isin(days) == False]
+
+    call_center_consultations = pd.concat([old, call_center_consultations])
     call_center_consultations.to_csv('dist/csv/150002_niigata_covid19_call_center.csv', index=False)
 
 
