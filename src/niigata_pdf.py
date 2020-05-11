@@ -77,7 +77,7 @@ def create_hospitalization():
     if len(paragraphs) == 1:
         in_text = paragraphs[0].get_text()
         in_match = re.search('.*・入院中(（準備中含む）)?：[^0-9^０-９]*([0-9０-９]+)例.*', in_text, re.U)
-        [in_count] = in_match.groups()
+        in_count = in_match.groups()[1]
         in_count = to_half_width(in_count)
 
     paragraphs = soup.select('p:contains("・宿泊療養中：")')
