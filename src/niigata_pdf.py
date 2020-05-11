@@ -69,12 +69,25 @@ def create_hospitalization():
     soup = BeautifulSoup(page.content, 'html.parser')
 
     in_count = ''
-    paragraphs = soup.select('p:contains("・入院中（準備中含む）：")')
+
+    paragraphs = soup.select('p:contains("・入院中：")')
+    if len(paragraphs) == 0:
+        paragraphs = soup.select('p:contains("・入院中（準備中含む）：")')
+
     if len(paragraphs) == 1:
         in_text = paragraphs[0].get_text()
-        in_match = re.search('.*・入院中（準備中含む）：[^0-9^０-９]*([0-9０-９]+)例.*', in_text, re.U)
+        in_match = re.search('.*・入院中：[^0-9^０-９]*([0-9０-９]+)例.*', in_text, re.U)
         [in_count] = in_match.groups()
         in_count = to_half_width(in_count)
+
+    paragraphs = soup.select('p:contains("・宿泊療養中：")')
+
+    if len(paragraphs) == 1:
+        in_text = paragraphs[0].get_text()
+        in_match = re.search('.*・宿泊療養中：[^0-9^０-９]*([0-9０-９]+)例.*', in_text, re.U)
+        [in_hotel_count] = in_match.groups()
+        in_hotel_count = to_half_width(in_hotel_count)
+        in_count = int(in_count) + int(in_hotel_count)
 
     out_count = ''
     paragraphs = soup.select('p:contains("・退院済：")')
