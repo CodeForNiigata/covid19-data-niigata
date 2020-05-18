@@ -27,7 +27,6 @@ def create_json():
     test_last_date = updated_at.at['test_count', 'updated_at']
     call_center_last_date = updated_at.at['call_center', 'updated_at']
 
-    (inspections_labels, inspections_data) = get_inspections_summary()
 
     data = {
         'contacts': {
@@ -56,8 +55,7 @@ def create_json():
         },
         'inspections_summary': {
             'date': test_last_date,
-            'labels': inspections_labels,
-            'data': inspections_data,
+            'data': get_inspections_summary(),
         },
         'lastUpdate': test_last_date,
         'main_summary': get_main_summary(),
@@ -206,21 +204,14 @@ def get_inspections():
 def get_inspections_summary():
     test_count = pd.read_csv('./dist/csv/150002_niigata_covid19_test_count.csv')
 
-    test_count['_date'] = test_count['実施_年月日']
-    test_count['_date'] = pd.to_datetime(test_count['_date'], format=DATE)
-    test_count['_test_count'] = test_count['検査実施_件数']
+    test_count['日付'] = test_count['実施_年月日']
+    test_count['日付'] = pd.to_datetime(test_count['日付'], format=DATE)
+    test_count['日付'] = test_count['日付'].dt.strftime(FULL_DATETIME)
+    test_count['小計'] = test_count['検査実施_件数']
 
-    test_count['labels'] = test_count['_date'].dt.strftime(SHORT_DATE_NO_ZERO_PADDING)
-    test_count['県内'] = test_count['_test_count']
-    test_count['その他'] = 0
+    test_count = test_count[['日付', '小計']]
 
-    labels = test_count['labels']
-    data = test_count[['県内', 'その他']]
-
-    return (
-        labels.values.tolist(),
-        data.to_dict(orient='list'),
-    )
+    return test_count.to_dict(orient='records')
 
 
 def get_main_summary():
