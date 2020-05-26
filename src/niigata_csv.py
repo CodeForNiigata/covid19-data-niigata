@@ -48,10 +48,16 @@ def get_patients():
 def get_tests():
     kensa_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_test.pdf', pages='all')
     tests = kensa_pdf[0]
-    tests.columns = ['結果判明日', '曜日', '検査件数', 'うち陽性件数']
+
+    try:
+        tests.columns = ['結果判明日', '曜日', '検査件数', 'うち陽性件数']
+    except ValueError:
+        tests.drop(tests.filter(regex="Unnamed.+[01]"),axis=1, inplace=True)
+        tests.columns = ['結果判明日', '曜日', '検査件数', 'うち陽性件数']
 
     # いらないデータの除去
     tests = tests[tests['結果判明日'] != '令和2年']  # 2月のデータ
+    tests = tests[tests['結果判明日'] != '2月']  # 2月のデータ
     tests = tests[tests['結果判明日'] != '3月']
     tests = tests[tests['結果判明日'] != '4月']
     tests = tests[tests['結果判明日'] != '計']
