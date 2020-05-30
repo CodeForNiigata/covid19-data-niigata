@@ -132,6 +132,7 @@ def get_patients_summary():
     updated_at = pd.read_csv('./dist/csv/updated_at.csv')
     updated_at = updated_at.set_index('name')
 
+    print(updated_at)
     last_date = updated_at.at['patients', 'updated_at']
     last_date = dt.datetime.strptime(last_date, '%Y-%m-%dT%H:%M:%S.000Z')
     last_date = dt.date(last_date.year, last_date.month, last_date.day)

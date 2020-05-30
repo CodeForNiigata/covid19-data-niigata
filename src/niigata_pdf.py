@@ -21,11 +21,11 @@ def create_update_date():
     soup = BeautifulSoup(page.content, 'html.parser')
 
     houkoku_date = ''
-    paragraphs = soup.select('h2:contains("重要なお知らせ") + p')
+    paragraphs = soup.select('p:contains("「検査実施件数」は、")')
     if len(paragraphs) == 1:
         houkoku_text = paragraphs[0].get_text()
-        houkoku_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日(\w+)時.*', houkoku_text, re.U)
-        (_, month, day, hour) = houkoku_matches.groups()
+        houkoku_matches = re.search('(\w+)月(\w+)日(\w+)時までに結果が判明した検査件数', houkoku_text)
+        (month, day, hour) = houkoku_matches.groups()
         month = to_half_width(month).zfill(2)
         day = to_half_width(day).zfill(2)
         hour = to_half_width(hour).zfill(2)
@@ -35,14 +35,13 @@ def create_update_date():
     paragraphs = soup.select('h3:contains("県内における「帰国者・接触者相談センター」への相談件数及び検査件数") + p')
     if len(paragraphs) == 1:
         soudan_kensa_text = paragraphs[0].get_text()
-        soudan_kensa_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日(\w+)：(\w+).*', soudan_kensa_text, re.U)
-        if soudan_kensa_matches is None:
-            soudan_kensa_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日(\w+)時(\w+)分.*', soudan_kensa_text, re.U)
-        (_, month, day, hour, _) = soudan_kensa_matches.groups()
+        soudan_kensa_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日公表分（(\w+)時(\w+)分.*', soudan_kensa_text, re.U)
+        (_, month, day, hour, minute) = soudan_kensa_matches.groups()
         month = to_half_width(month).zfill(2)
         day = to_half_width(day).zfill(2)
         hour = to_half_width(hour).zfill(2)
-        soudan_kensa_date = f"2020-{month}-{day}T{hour}:00:00.000Z"
+        minute = to_half_width(minute).zfill(2)
+        soudan_kensa_date = f"2020-{month}-{day}T{hour}:{minute}:00.000Z"
 
     df = pd.DataFrame({
         'name': [
@@ -70,32 +69,35 @@ def create_hospitalization():
 
     in_count = ''
 
-    paragraphs = soup.select('p:contains("・入院中：")')
-    if len(paragraphs) == 0:
-        paragraphs = soup.select('p:contains("・入院中（準備中含む）：")')
+    table = soup.find('table', summary="検査陽性者の状況")
+    subject = table.find('thead')
+    data = table.find('tbody').find('tr')
 
-    if len(paragraphs) == 1:
-        in_text = paragraphs[0].get_text()
-        in_match = re.search('.*・入院中(（準備中含む）)?：[^0-9^０-９]*([0-9０-９]+)例.*', in_text, re.U)
-        in_count = in_match.groups()[1]
-        in_count = to_half_width(in_count)
+    matcher = re.compile('([0-9０-９]+)')
 
-    paragraphs = soup.select('p:contains("・宿泊療養中：")')
+    # 入院中
+    if subject.find_all('th')[3].get_text() == "入院中":
+        in_text = data.find_all('td')[3].get_text()
+        in_match = matcher.search(in_text)
+        [in_count] = in_match.groups()
+        in_count = int(to_half_width(in_count))
 
-    if len(paragraphs) == 1:
-        in_text = paragraphs[0].get_text()
-        in_match = re.search('.*・宿泊療養中：[^0-9^０-９]*([0-9０-９]+)例.*', in_text, re.U)
-        [in_hotel_count] = in_match.groups()
-        in_hotel_count = to_half_width(in_hotel_count)
-        in_count = int(in_count) + int(in_hotel_count)
+    # 宿泊療養中
+    if subject.find_all('th')[5].get_text() == "宿泊療養中":
+        in_hotel_text = data.find_all('td')[5].get_text()
+        in_hotel_match = matcher.search(in_hotel_text)
+        [in_hotel_count] = in_hotel_match.groups()
+        in_hotel_count = int(to_half_width(in_hotel_count))
+        in_count = in_count + in_hotel_count
 
+    # 退院済み
     out_count = ''
-    paragraphs = soup.select('p:contains("・退院済：")')
-    if len(paragraphs) == 1:
-        out_text = paragraphs[0].get_text()
-        out_match = re.search('.*・退院済：[^0-9^０-９]*([0-9０-９]+)例.*', out_text, re.U)
+
+    if subject.find_all('th')[6].get_text() == "退院":
+        out_text = data.find_all('td')[6].get_text()
+        out_match = matcher.search(in_text)
         [out_count] = out_match.groups()
-        out_count = to_half_width(out_count)
+        out_count = int(to_half_width(out_count))
 
     df = pd.DataFrame({
         'type': [
