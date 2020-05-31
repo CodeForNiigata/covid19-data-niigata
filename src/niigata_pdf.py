@@ -95,7 +95,7 @@ def create_hospitalization():
 
     if subject.find_all('th')[6].get_text() == "退院":
         out_text = data.find_all('td')[6].get_text()
-        out_match = matcher.search(in_text)
+        out_match = matcher.search(out_text)
         [out_count] = out_match.groups()
         out_count = int(to_half_width(out_count))
 
