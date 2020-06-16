@@ -60,6 +60,7 @@ def get_tests():
     tests = tests[tests['結果判明日'] != '2月']  # 2月のデータ
     tests = tests[tests['結果判明日'] != '3月']
     tests = tests[tests['結果判明日'] != '4月']
+    tests = tests[tests['結果判明日'] != '5月']
     tests = tests[tests['結果判明日'] != '計']
 
     # 型をいい感じに
