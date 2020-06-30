@@ -75,6 +75,7 @@ def get_tests():
     tests['結果判明日'] = pd.to_datetime(tests['結果判明日'], format='%Y年%m月%d日')
     tests['結果判明日'] = tests['結果判明日'].dt.strftime('%Y-%m-%d')
 
+    tests['検査件数'] = tests['検査件数'].str.replace('\(\d+\)', '', regex=True)
     tests['検査件数'] = tests['検査件数'].astype(int)
 
     tests['うち陽性件数'] = tests['うち陽性件数'].fillna(0)
