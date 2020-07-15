@@ -76,9 +76,17 @@ def get_tests():
     tests['結果判明日'] = tests['結果判明日'].dt.strftime('%Y-%m-%d')
 
     tests['検査件数'] = tests['検査件数'].str.replace('\(\d+\)', '', regex=True)
+    tests['検査件数'] = tests['検査件数'].str.replace(' ', '')
+    tests['検査件数'] = tests['検査件数'].str.replace(',', '')
+    tests['検査件数'] = tests['検査件数'].drop(1)
+    tests['検査件数'].dropna(inplace=True)
     tests['検査件数'] = tests['検査件数'].astype(int)
 
     tests['うち陽性件数'] = tests['うち陽性件数'].fillna(0)
+    tests['うち陽性件数'] = tests['うち陽性件数'].str.replace(' ', '')
+    tests['うち陽性件数'] = tests['うち陽性件数'].str.replace(',', '')
+    tests['うち陽性件数'] = tests['うち陽性件数'].drop(0)
+    tests['うち陽性件数'].dropna(inplace=True)
     tests['うち陽性件数'] = tests['うち陽性件数'].astype(int)
 
     return tests
@@ -169,6 +177,7 @@ def create_inspectors():
     inspectors['全国地方公共団体コード'] = '150002'
     inspectors['都道府県名'] = '新潟県'
     inspectors['市区町村名'] = ''
+    inspectors['検査件数'].dropna(inplace=True)
     inspectors['検査実施_人数'] = inspectors['検査件数'].astype(int)
     inspectors['備考'] = ''
 
@@ -198,6 +207,7 @@ def create_inspections_performed():
     inspections_performed['全国地方公共団体コード'] = '150002'
     inspections_performed['都道府県名'] = '新潟県'
     inspections_performed['市区町村名'] = ''
+    inspections_performed['検査件数'].dropna(inplace=True)
     inspections_performed['検査実施_件数'] = inspections_performed['検査件数'].astype(int)
     inspections_performed['備考'] = ''
 
@@ -228,6 +238,7 @@ def create_negative_confirmations():
     negative_confirmations['都道府県名'] = '新潟県'
     negative_confirmations['市区町村名'] = ''
     negative_confirmations['陰性確認_件数'] = negative_confirmations['検査件数'] - negative_confirmations['うち陽性件数']
+    negative_confirmations['陰性確認_件数'].dropna(inplace=True)
     negative_confirmations['陰性確認_件数'] = negative_confirmations['陰性確認_件数'].astype(int)
     negative_confirmations['備考'] = ''
 
