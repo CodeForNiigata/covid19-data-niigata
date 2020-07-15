@@ -67,7 +67,7 @@ def create_hospitalization():
     page = requests.get(page_url)
     soup = BeautifulSoup(page.content, 'html.parser')
 
-    in_count = ''
+    in_count = 0
 
     table = soup.find('table', summary="検査陽性者の状況")
     subject = table.find('thead')
@@ -76,7 +76,7 @@ def create_hospitalization():
     matcher = re.compile('([0-9０-９]+)')
 
     # 入院中
-    if subject.find_all('th')[3].get_text() == "入院中":
+    if subject.find_all('th')[3].get_text() == "入院中\n(予定含む)":
         in_text = data.find_all('td')[3].get_text()
         in_match = matcher.search(in_text)
         [in_count] = in_match.groups()
@@ -95,7 +95,7 @@ def create_hospitalization():
 
     if subject.find_all('th')[6].get_text() == "退院":
         out_text = data.find_all('td')[6].get_text()
-        out_match = matcher.search(in_text)
+        out_match = matcher.search(out_text)
         [out_count] = out_match.groups()
         out_count = int(to_half_width(out_count))
 
