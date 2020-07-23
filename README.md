@@ -19,13 +19,18 @@ get niigata covid19 data
 ## Usage
 
 ```
+# 患者情報に更新がある場合は手動で更新する
+$ vim dist/csv/150002_niigata_covid19_patients.csv
+
 # 県のページからCSVとJSONを生成する
 $ pipenv run main
 
 # 県のページからデータを取得する
 $ pipenv run pdf
+
 # 取得したデータから標準形式のCSVを生成する
 $ pipenv run csv
+
 # 標準形式のCSVからstopcovid19のjsonを生成する
 $ pipenv run json
 ```

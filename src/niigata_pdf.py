@@ -121,14 +121,12 @@ def get_url():
     page = requests.get(page_url)
     soup = BeautifulSoup(page.content, 'html.parser')
 
-    links = soup.select('a:contains("【新潟県内の報告一覧表】")')
-    houkoku_url = base_url + links[0].get('href')
     links = soup.select('a:contains("センター相談件数一覧表")')
     soudan_url = base_url + links[0].get('href')
     links = soup.select('a:contains("検査件数一覧表")')
     kensa_url = base_url + links[0].get('href')
 
-    return houkoku_url, soudan_url, kensa_url
+    return soudan_url, kensa_url
 
 
 def download(url, path):
@@ -142,8 +140,7 @@ def download(url, path):
 
 
 def download_pdfs():
-    (houkoku_url, soudan_url, kensa_url) = get_url()
-    download(houkoku_url, './dist/pdf/150002_niigata_covid19_patients.pdf')
+    (soudan_url, kensa_url) = get_url()
     download(soudan_url, './dist/pdf/150002_niigata_covid19_call_center.pdf')
     download(kensa_url, './dist/pdf/150002_niigata_covid19_test.pdf')
 
