@@ -1,9 +1,13 @@
+from bs4 import BeautifulSoup
 import numpy as np
 import pandas as pd
+import requests
 import tabula
 
+base_url = 'https://www.pref.niigata.lg.jp'
 
 def main():
+    create_positive_patients()
     create_inspectors()
     create_inspections_performed()
     create_negative_confirmations()
@@ -22,25 +26,51 @@ def get_city_code():
 
 
 def get_patients():
-    houkoku_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_patients.pdf', lattice=True, pages='all')
-    patients = pd.concat(houkoku_pdf)
-    patients.columns = ['患者No.', '_', '判明日', '年代', '性別', '居住地', '職業']
+    page_url = base_url + '/site/shingata-corona/256362836.html'
+    page = requests.get(page_url)
+    soup = BeautifulSoup(page.content, 'html.parser')
+    rows = soup.select('table[summary="県内における感染者の発生状況"] tbody tr')
 
-    # きれいなデータに
+    records = []
+    for i, row in enumerate(rows):
+        cols = row.select('td')
+        record = [col.getText() for col in cols[2:7]]
+        record.insert(0, cols[0].getText())
+        records.append(record)
+
+    columns = ['患者No.', '判明日', '年代', '性別', '居住地', '職業']
+    patients = pd.DataFrame(records, columns=columns)
+
+    # 改行の除去
+    patients['患者No.'] = patients['患者No.'].str.replace('\n', '', regex=True)
+    patients['年代'] = patients['年代'].str.replace('\n', '', regex=True)
+    patients['居住地'] = patients['居住地'].str.replace('\n', '', regex=True)
+    patients['職業'] = patients['職業'].str.replace('\n', '', regex=True)
+
+    # カッコの中身を消す
+    patients['判明日'] = patients['判明日'].str.replace('\(.*\)', '', regex=True)
+    patients['判明日'] = patients['判明日'].str.replace('（.*）', '', regex=True)
+    patients['年代'] = patients['年代'].str.replace('\(.*\)', '', regex=True)
+    patients['年代'] = patients['年代'].str.replace('（.*）', '', regex=True)
+
+    # カッコの外側を消す
+    patients['居住地'] = patients['居住地'].str.replace('.*\(', '', regex=True)
+    patients['居住地'] = patients['居住地'].str.replace('\)', '')
+    patients['居住地'] = patients['居住地'].str.replace('.*（', '', regex=True)
+    patients['居住地'] = patients['居住地'].str.replace('）', '')
+
+    # データなしを表現する文字の除去
+    patients['年代'] = patients['年代'].str.replace('[-―－]', '', regex=True)
+    patients['性別'] = patients['性別'].str.replace('[-―－]', '', regex=True)
+    patients['職業'] = patients['職業'].str.replace('[-―－]', '', regex=True)
+
+    # 型変換
+    patients['患者No.'] = patients['患者No.'].astype(int)
     patients['判明日'] = '2020年' + patients['判明日']
     patients['判明日'] = pd.to_datetime(patients['判明日'], format='%Y年%m月%d日')
     patients['判明日'] = patients['判明日'].dt.strftime('%Y-%m-%d')
 
-    patients['年代'] = patients['年代'].str.replace('\(乳幼児\)', '')
-
-    patients['居住地'] = patients['居住地'].str.replace('\r', '', regex=True)
-    patients['居住地'] = patients['居住地'].str.replace('東京都\(', '')
-    patients['居住地'] = patients['居住地'].str.replace('神戸市\(', '')
-    patients['居住地'] = patients['居住地'].str.replace('\)', '')
-
-    patients['職業'] = patients['職業'].str.replace('\r', '', regex=True)
-    patients['職業'] = patients['職業'].str.replace('―', '')
-
+    patients = patients.sort_values('患者No.')
     return patients
 
 
@@ -139,6 +169,54 @@ def create_inspectors():
     inspectors = pd.concat([old, inspectors])
 
     inspectors.to_csv('dist/csv/150002_niigata_covid19_test_people.csv', index=False)
+
+
+# 陽性患者属性
+def create_positive_patients():
+    (city_table, ku_table) = get_city_code()
+    positive_patient = get_patients()
+
+    positive_patient['city_name'] = positive_patient['居住地']
+    positive_patient = pd.merge(positive_patient, city_table, on='city_name', how='left')
+    positive_patient = pd.merge(positive_patient, ku_table, on='city_name', how='left')
+
+    serial_num = pd.RangeIndex(start=1, stop=len(positive_patient.index) + 1, step=1)
+    positive_patient['No'] = serial_num
+    positive_patient.loc[positive_patient['code_y'].isna(), '全国地方公共団体コード'] = positive_patient['code_x']
+    positive_patient.loc[positive_patient['code_x'].isna(), '全国地方公共団体コード'] = positive_patient['code_y']
+    positive_patient.loc[positive_patient['全国地方公共団体コード'].isna(), '全国地方公共団体コード'] = positive_patient['code_y']
+    positive_patient['都道府県名'] = '新潟県'
+    positive_patient['市区町村名'] = positive_patient['居住地']
+    positive_patient['公表_年月日'] = positive_patient['判明日']
+    positive_patient['発症_年月日'] = ''
+    positive_patient['患者_居住地'] = positive_patient['居住地']
+    positive_patient['患者_年代'] = positive_patient['年代']
+    positive_patient['患者_性別'] = positive_patient['性別']
+    positive_patient['患者_職業'] = positive_patient['職業']
+    positive_patient['患者_状態'] = ''
+    positive_patient['患者_症状'] = ''
+    positive_patient['患者_渡航歴の有無フラグ'] = ''
+    positive_patient['患者_退院済フラグ'] = ''
+    positive_patient['備考'] = ''
+
+    positive_patient = positive_patient[[
+        'No',
+        '全国地方公共団体コード',
+        '都道府県名',
+        '市区町村名',
+        '公表_年月日',
+        '発症_年月日',
+        '患者_居住地',
+        '患者_年代',
+        '患者_性別',
+        '患者_職業',
+        '患者_状態',
+        '患者_症状',
+        '患者_渡航歴の有無フラグ',
+        '患者_退院済フラグ',
+        '備考',
+    ]]
+    positive_patient.to_csv('dist/csv/150002_niigata_covid19_patients.csv', index=False)
 
 
 # 検査実施件数
