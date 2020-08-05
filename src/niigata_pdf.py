@@ -16,21 +16,11 @@ def main():
 
 
 def create_update_date():
-    page_url = base_url + '/sec/kenko/covid19.html'
+    page_url = base_url + '/site/shingata-corona/256362836.html'
     page = requests.get(page_url)
     soup = BeautifulSoup(page.content, 'html.parser')
 
     houkoku_date = ''
-    paragraphs = soup.select('p:contains("「検査実施件数」は、")')
-    if len(paragraphs) == 1:
-        houkoku_text = paragraphs[0].get_text()
-        houkoku_matches = re.search('(\w+)月(\w+)日(\w+)時までに結果が判明した検査件数', houkoku_text)
-        (month, day, hour) = houkoku_matches.groups()
-        month = to_half_width(month).zfill(2)
-        day = to_half_width(day).zfill(2)
-        hour = to_half_width(hour).zfill(2)
-        houkoku_date = f"2020-{month}-{day}T{hour}:00:00.000Z"
-
     soudan_kensa_date = ''
     paragraphs = soup.select('h3:contains("県内における「帰国者・接触者相談センター」への相談件数及び検査件数") + p')
     if len(paragraphs) == 1:
@@ -41,6 +31,7 @@ def create_update_date():
         day = to_half_width(day).zfill(2)
         hour = to_half_width(hour).zfill(2)
         minute = to_half_width(minute).zfill(2)
+        houkoku_date = f"2020-{month}-{day}T{hour}:{minute}:00.000Z"
         soudan_kensa_date = f"2020-{month}-{day}T{hour}:{minute}:00.000Z"
 
     df = pd.DataFrame({
