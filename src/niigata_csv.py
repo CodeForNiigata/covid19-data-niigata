@@ -43,21 +43,18 @@ def get_patients():
 
     # 改行の除去
     patients['患者No.'] = patients['患者No.'].str.replace('\n', '', regex=True)
+    patients['判明日'] = patients['判明日'].str.replace('\n', '', regex=True)
     patients['年代'] = patients['年代'].str.replace('\n', '', regex=True)
     patients['居住地'] = patients['居住地'].str.replace('\n', '', regex=True)
     patients['職業'] = patients['職業'].str.replace('\n', '', regex=True)
 
     # カッコの中身を消す
-    patients['判明日'] = patients['判明日'].str.replace('\(.*\)', '', regex=True)
-    patients['判明日'] = patients['判明日'].str.replace('（.*）', '', regex=True)
-    patients['年代'] = patients['年代'].str.replace('\(.*\)', '', regex=True)
-    patients['年代'] = patients['年代'].str.replace('（.*）', '', regex=True)
+    patients['判明日'] = patients['判明日'].str.replace('[\(（].*[\)）]', '', regex=True)
+    patients['年代'] = patients['年代'].str.replace('[\(（].*[\)）]', '', regex=True)
 
     # カッコの外側を消す
-    patients['居住地'] = patients['居住地'].str.replace('.*\(', '', regex=True)
-    patients['居住地'] = patients['居住地'].str.replace('\)', '')
-    patients['居住地'] = patients['居住地'].str.replace('.*（', '', regex=True)
-    patients['居住地'] = patients['居住地'].str.replace('）', '')
+    patients['居住地'] = patients['居住地'].str.replace('.*[\(（]', '', regex=True)
+    patients['居住地'] = patients['居住地'].str.replace('[\)）].*', '')
 
     # データなしを表現する文字の除去
     patients['年代'] = patients['年代'].str.replace('[-―－]', '', regex=True)

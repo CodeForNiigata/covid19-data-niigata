@@ -16,21 +16,11 @@ def main():
 
 
 def create_update_date():
-    page_url = base_url + '/sec/kenko/covid19.html'
+    page_url = base_url + '/site/shingata-corona/256362836.html'
     page = requests.get(page_url)
     soup = BeautifulSoup(page.content, 'html.parser')
 
     houkoku_date = ''
-    paragraphs = soup.select('p:contains("「検査実施件数」は、")')
-    if len(paragraphs) == 1:
-        houkoku_text = paragraphs[0].get_text()
-        houkoku_matches = re.search('(\w+)月(\w+)日(\w+)時までに結果が判明した検査件数', houkoku_text)
-        (month, day, hour) = houkoku_matches.groups()
-        month = to_half_width(month).zfill(2)
-        day = to_half_width(day).zfill(2)
-        hour = to_half_width(hour).zfill(2)
-        houkoku_date = f"2020-{month}-{day}T{hour}:00:00.000Z"
-
     soudan_kensa_date = ''
     paragraphs = soup.select('h3:contains("県内における「帰国者・接触者相談センター」への相談件数及び検査件数") + p')
     if len(paragraphs) == 1:
@@ -41,6 +31,7 @@ def create_update_date():
         day = to_half_width(day).zfill(2)
         hour = to_half_width(hour).zfill(2)
         minute = to_half_width(minute).zfill(2)
+        houkoku_date = f"2020-{month}-{day}T{hour}:{minute}:00.000Z"
         soudan_kensa_date = f"2020-{month}-{day}T{hour}:{minute}:00.000Z"
 
     df = pd.DataFrame({
@@ -63,28 +54,28 @@ def create_update_date():
 
 
 def create_hospitalization():
-    page_url = base_url + '/sec/kenko/covid19.html'
+    page_url = base_url + '/site/shingata-corona/index.html'
     page = requests.get(page_url)
     soup = BeautifulSoup(page.content, 'html.parser')
 
     in_count = 0
 
-    table = soup.find('table', summary="検査陽性者の状況")
+    table = soup.find('table', summary="Pcr検査実施件数や陽性事例等")
     subject = table.find('thead')
     data = table.find('tbody').find('tr')
 
     matcher = re.compile('([0-9０-９]+)')
 
     # 入院中
-    if subject.find_all('th')[3].get_text() == "入院中\n(予定含む)":
-        in_text = data.find_all('td')[3].get_text()
+    if "入院中" in subject.find_all('th')[3].get_text():
+        in_text = data.find_all('td')[2].get_text()
         in_match = matcher.search(in_text)
         [in_count] = in_match.groups()
         in_count = int(to_half_width(in_count))
 
     # 宿泊療養中
     if subject.find_all('th')[5].get_text() == "宿泊療養中":
-        in_hotel_text = data.find_all('td')[5].get_text()
+        in_hotel_text = data.find_all('td')[4].get_text()
         in_hotel_match = matcher.search(in_hotel_text)
         [in_hotel_count] = in_hotel_match.groups()
         in_hotel_count = int(to_half_width(in_hotel_count))
@@ -94,7 +85,7 @@ def create_hospitalization():
     out_count = ''
 
     if subject.find_all('th')[6].get_text() == "退院":
-        out_text = data.find_all('td')[6].get_text()
+        out_text = data.find_all('td')[5].get_text()
         out_match = matcher.search(out_text)
         [out_count] = out_match.groups()
         out_count = int(to_half_width(out_count))
@@ -117,7 +108,7 @@ def to_half_width(text):
 
 
 def get_url():
-    page_url = base_url + '/sec/kenko/covid19.html'
+    page_url = base_url + '/site/shingata-corona/256362836.html'
     page = requests.get(page_url)
     soup = BeautifulSoup(page.content, 'html.parser')
 
