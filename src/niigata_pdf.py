@@ -112,9 +112,9 @@ def get_url():
     page = requests.get(page_url)
     soup = BeautifulSoup(page.content, 'html.parser')
 
-    links = soup.select('a:contains("センター相談件数一覧表")')
+    links = soup.select('a:contains("センター相談件数")')
     soudan_url = base_url + links[0].get('href')
-    links = soup.select('a:contains("検査件数一覧表")')
+    links = soup.select('a:contains("検査件数")')
     kensa_url = base_url + links[0].get('href')
 
     return soudan_url, kensa_url
