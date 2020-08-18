@@ -76,14 +76,15 @@ def get_tests():
     tests = kensa_pdf[0]
 
     try:
-        tests.columns = ['結果判明日', '曜日', '検査件数', 'うち陽性件数']
+        tests.columns = ['結果判明日', '_', '_', '医療機関の件数', '検査件数', 'うち陽性件数', '_', '_']
     except ValueError:
         tests.drop(tests.filter(regex="Unnamed.+[01]"),axis=1, inplace=True)
-        tests.columns = ['結果判明日', '曜日', '検査件数', 'うち陽性件数']
+        tests.columns = ['結果判明日', '曜日', '_', '_', '検査件数', 'うち陽性件数', '_', '_']
 
     # いらないデータの除去
-    tests = tests[tests['結果判明日'] != '令和2年']  # 2月のデータ
-    tests = tests[tests['結果判明日'] != '2月']  # 2月のデータ
+    tests = tests[tests['結果判明日'].isnull() == False]  # 見出し二段目
+    tests = tests[tests['結果判明日'] != '令和2年']
+    tests = tests[tests['結果判明日'] != '2月']
     tests = tests[tests['結果判明日'] != '3月']
     tests = tests[tests['結果判明日'] != '4月']
     tests = tests[tests['結果判明日'] != '5月']
@@ -94,7 +95,7 @@ def get_tests():
     tests = tests[tests['結果判明日'] != '10月']
     tests = tests[tests['結果判明日'] != '11月']
     tests = tests[tests['結果判明日'] != '12月']
-    tests = tests[tests['結果判明日'] != '計']
+    tests = tests[tests['結果判明日'] != '合計']
 
     # 型をいい感じに
     tests['結果判明日'] = '2020年' + tests['結果判明日']
