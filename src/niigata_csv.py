@@ -63,6 +63,7 @@ def get_patients():
 
     # 型変換
     patients['患者No.'] = patients['患者No.'].astype(int)
+    patients = patients[patients['判明日'] != '―']  # 欠番を除去
     patients['判明日'] = '2020年' + patients['判明日']
     patients['判明日'] = pd.to_datetime(patients['判明日'], format='%Y年%m月%d日')
     patients['判明日'] = patients['判明日'].dt.strftime('%Y-%m-%d')
@@ -75,14 +76,11 @@ def get_tests():
     kensa_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_test.pdf', pages='all')
     tests = kensa_pdf[0]
 
-    try:
-        tests.columns = ['結果判明日', '_', '_', '医療機関の件数', '検査件数', 'うち陽性件数', '_', '_']
-    except ValueError:
-        tests.drop(tests.filter(regex="Unnamed.+[01]"),axis=1, inplace=True)
-        tests.columns = ['結果判明日', '曜日', '_', '_', '検査件数', 'うち陽性件数', '_', '_']
+    tests.columns = ['結果判明日', '曜日', '_', '_', '検査件数', 'うち陽性件数', '_', '_', '_']
 
     # いらないデータの除去
     tests = tests[tests['結果判明日'].isnull() == False]  # 見出し二段目
+    tests = tests[tests['結果判明日'] != '実施日']
     tests = tests[tests['結果判明日'] != '令和2年']
     tests = tests[tests['結果判明日'] != '2月']
     tests = tests[tests['結果判明日'] != '3月']
