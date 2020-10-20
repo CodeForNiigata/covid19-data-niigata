@@ -78,10 +78,11 @@ def get_tests():
     kensa_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_test.pdf', pages='all')
     tests = kensa_pdf[0]
 
-    tests.columns = ['結果判明日', '_', '_', '_', '_', '検査件数', 'うち陽性件数', '_', '_']
+    tests.columns = ['結果判明日', '_', '_', '_', '検査件数', '_', 'うち陽性件数', '_', '_']
 
     # いらないデータの除去
     tests = tests[tests['結果判明日'].isnull() == False]  # 見出し
+    tests = tests[tests['結果判明日'] != '実施日']
     tests = tests[tests['結果判明日'] != '2月']
     tests = tests[tests['結果判明日'] != '3月']
     tests = tests[tests['結果判明日'] != '4月']
