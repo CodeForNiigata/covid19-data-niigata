@@ -32,5 +32,5 @@ jobs:
         git checkout master
         pipenv run main
         git add dist
-        git commit -m "daily update"
+        git commit -m "daily update" || true
         git push origin master || true
