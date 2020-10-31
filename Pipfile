@@ -17,7 +17,6 @@ openpyxl = "*"
 pandas = "*"
 requests = "*"
 simplejson = "*"
-tabula-py = "*"
 xlrd = "*"
 
 [requires]
