@@ -12,7 +12,7 @@ base_url = 'https://www.pref.niigata.lg.jp'
 def main():
     create_hospitalization()
     create_update_date()
-    download_pdfs()
+    download_xlsxs()
 
 
 def create_update_date():
@@ -113,9 +113,9 @@ def get_url():
     soup = BeautifulSoup(page.content, 'html.parser')
 
     links = soup.select('a:contains("センター相談件数")')
-    soudan_url = base_url + links[0].get('href')
+    soudan_url = base_url + links[1].get('href')
     links = soup.select('a:contains("検査件数")')
-    kensa_url = base_url + links[0].get('href')
+    kensa_url = base_url + links[1].get('href')
 
     return soudan_url, kensa_url
 
@@ -130,10 +130,10 @@ def download(url, path):
         print(e)
 
 
-def download_pdfs():
+def download_xlsxs():
     (soudan_url, kensa_url) = get_url()
-    download(soudan_url, './dist/pdf/150002_niigata_covid19_call_center.pdf')
-    download(kensa_url, './dist/pdf/150002_niigata_covid19_test.pdf')
+    download(soudan_url, './dist/xlsx/150002_niigata_covid19_call_center.xlsx')
+    download(kensa_url, './dist/xlsx/150002_niigata_covid19_test.xlsx')
 
 
 if __name__ == '__main__':

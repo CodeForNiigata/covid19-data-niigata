@@ -2,7 +2,6 @@ from bs4 import BeautifulSoup
 import numpy as np
 import pandas as pd
 import requests
-import tabula
 
 base_url = 'https://www.pref.niigata.lg.jp'
 
@@ -15,13 +14,20 @@ def main():
 
 
 def get_city_code():
-    city_code_pdf = tabula.read_pdf('./dist/pdf/city_code.pdf', pages='all', pandas_options={'header': None})
-    [city_tables, ku_tables] = np.split(city_code_pdf, [31])
-    city_table = pd.concat(city_tables)
-    city_table = city_table.drop(0)
-    city_table.columns = ['code', 'pref_name', 'city_name', 'pref_kana', 'city_kana']
-    ku_table = pd.concat(ku_tables)
+    city_table = pd.read_excel('./dist/xlsx/city_code.xls', sheet_name='R1.5.1現在の団体')
+    city_table = city_table.rename(columns={
+        '団体コード': 'code',
+        '都道府県名\n（漢字）': 'pref_name',
+        '市区町村名\n（漢字）': 'city_name',
+        '都道府県名\n（カナ）': 'pref_kana',
+        '市区町村名\n（カナ）': 'city_kana',
+    })
+    city_table['code'] = city_table['code'].astype(str)
+
+    ku_table = pd.read_excel('./dist/xlsx/city_code.xls', sheet_name='H30.10.1政令指定都市', header=None)
     ku_table.columns = ['code', 'city_name', 'city_kana']
+    ku_table['code'] = ku_table['code'].astype(str)
+
     return city_table, ku_table
 
 
@@ -75,66 +81,85 @@ def get_patients():
 
 
 def get_tests():
-    kensa_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_test.pdf', pages='all')
-    tests = kensa_pdf[0]
-
-    tests.columns = ['結果判明日', '_', '_', '_', '検査件数', '_', 'うち陽性件数', '_', '_']
+    path = './dist/xlsx/150002_niigata_covid19_test.xlsx'
+    tests = pd.read_excel(path, skiprows=[0, 1, 2, 3, 5], skipfooter=2, header=0, index_col=None, sheet_name='HP用検査表（月別）')
+    tests = tests.rename(columns={
+        'Unnamed: 0': '検査実施日',
+        'Unnamed: 1': '検査実施曜日',
+        '帰国者・接触者外来／地域外来・検査ｾﾝﾀｰ（PCRｾﾝﾀｰ）における検査件数': 'PCR検査_医療機関以外_検査件数',
+        'Unnamed: 3': 'PCR検査_PCRセンター_検査件数',
+        '医療機関が実施する\n検査件数※１': 'PCR検査_医療機関_検査件数',
+        'PCR検査件数\n合計': 'PCR検査_検査件数',
+        'うち陽性件数※２': 'PCR検査_陽性件数',
+        '医療機関が実施する\n検査件数※１.1': '抗原検査_検査件数',
+        'うち陽性件数': '抗原検査_陽性件数',
+    })
 
     # いらないデータの除去
-    tests = tests[tests['結果判明日'].isnull() == False]  # 見出し
-    tests = tests[tests['結果判明日'] != '実施日']
-    tests = tests[tests['結果判明日'] != '2月']
-    tests = tests[tests['結果判明日'] != '3月']
-    tests = tests[tests['結果判明日'] != '4月']
-    tests = tests[tests['結果判明日'] != '5月']
-    tests = tests[tests['結果判明日'] != '6月']
-    tests = tests[tests['結果判明日'] != '7月']
-    tests = tests[tests['結果判明日'] != '8月']
-    tests = tests[tests['結果判明日'] != '9月']
-    tests = tests[tests['結果判明日'] != '10月']
-    tests = tests[tests['結果判明日'] != '11月']
-    tests = tests[tests['結果判明日'] != '12月']
-    tests = tests[tests['結果判明日'] != '合計']
+    tests = tests[tests['検査実施日'] != '2月']
+    tests = tests[tests['検査実施日'] != '3月']
+    tests = tests[tests['検査実施日'] != '4月']
+    tests = tests[tests['検査実施日'] != '5月']
+    tests = tests[tests['検査実施日'] != '6月']
+    tests = tests[tests['検査実施日'] != '7月']
+    tests = tests[tests['検査実施日'] != '8月']
+    tests = tests[tests['検査実施日'] != '9月']
+    tests = tests[tests['検査実施日'] != '10月']
+    tests = tests[tests['検査実施日'] != '11月']
+    tests = tests[tests['検査実施日'] != '12月']
+    tests = tests[tests['検査実施日'] != '合計']
 
     # 型をいい感じに
-    tests['結果判明日'] = '2020年' + tests['結果判明日']
-    tests['結果判明日'] = pd.to_datetime(tests['結果判明日'], format='%Y年%m月%d日')
-    tests['結果判明日'] = tests['結果判明日'].dt.strftime('%Y-%m-%d')
+    tests['検査実施日'] = pd.to_datetime(tests['検査実施日'].astype(float), unit="D", origin=pd.Timestamp("1899/12/30"))
+    tests['検査実施日'] = tests['検査実施日'].dt.strftime('%Y-%m-%d')
 
-    tests['検査件数'] = tests['検査件数'].str.replace('\(\d+\)', '', regex=True)
-    tests['検査件数'] = tests['検査件数'].astype(int)
+    tests['PCR検査_検査件数'] = tests['PCR検査_検査件数'].astype(int)
 
-    tests['うち陽性件数'] = tests['うち陽性件数'].fillna(0)
-    tests['うち陽性件数'] = tests['うち陽性件数'].astype(int)
+    tests['PCR検査_陽性件数'] = tests['PCR検査_陽性件数'].fillna(0)
+    tests['PCR検査_陽性件数'] = tests['PCR検査_陽性件数'].astype(int)
+
+    tests['結果判明日'] = tests['検査実施日']
+    tests['検査件数'] = tests['PCR検査_検査件数']
+    tests['うち陽性件数'] = tests['PCR検査_陽性件数']
+
+    tests = tests[['結果判明日', '検査件数', 'うち陽性件数']]
 
     return tests
 
 
 def get_call_centers():
-    soudan_pdf = tabula.read_pdf('./dist/pdf/150002_niigata_covid19_call_center.pdf', lattice=True, pages='all')
-    call_centers = pd.concat(soudan_pdf)
-    call_centers.columns = ['日', '曜日', '相談対応件数', '帰国者・接触者外来を紹介した人数', '備考']
-    call_centers = call_centers[call_centers['日'].str.endswith('年') == False]
-    call_centers = call_centers[call_centers['日'].str.endswith('月') == False]
-    call_centers = call_centers[call_centers['日'].str.endswith('計') == False]
+    path = './dist/xlsx/150002_niigata_covid19_call_center.xlsx'
+    call_centers = pd.read_excel(path, skiprows=[0, 1, 2], skipfooter=3)
+    call_centers = call_centers.rename(columns={
+        '日': '年号',
+        'Unnamed: 1': '日',
+        '曜日': '曜日',
+        '相談対応件数（件）': '相談対応件数',
+        '帰国者・接触者外来を\n紹介した人数（人）（注）': '帰国者・接触者外来を紹介した人数',
+        '備考': '備考',
+    })
 
-    # 年号がある列のズレを補正する
-    call_centers['_年号'] = call_centers['日'] == '令和2年'
-    call_centers['日'][call_centers['_年号']] = call_centers['曜日']
-    call_centers['曜日'][call_centers['_年号']] = call_centers['相談対応件数']
-    call_centers['相談対応件数'][call_centers['_年号']] = call_centers['帰国者・接触者外来を紹介した人数']
-    call_centers['帰国者・接触者外来を紹介した人数'][call_centers['_年号']] = call_centers['備考']
+    # 年号は無視
+    call_centers = call_centers[call_centers['日'] != '2月']
+    call_centers = call_centers[call_centers['日'] != '3月']
+    call_centers = call_centers[call_centers['日'] != '4月']
+    call_centers = call_centers[call_centers['日'] != '5月']
+    call_centers = call_centers[call_centers['日'] != '6月']
+    call_centers = call_centers[call_centers['日'] != '7月']
+    call_centers = call_centers[call_centers['日'] != '8月']
+    call_centers = call_centers[call_centers['日'] != '9月']
+    call_centers = call_centers[call_centers['日'] != '10月']
+    call_centers = call_centers[call_centers['日'] != '11月']
+    call_centers = call_centers[call_centers['日'] != '12月']
+    call_centers = call_centers[call_centers['日'] != '計']
 
-    # 型をいい感じに
-    call_centers['日'] = '2020年' + call_centers['日']
-    call_centers['日'] = pd.to_datetime(call_centers['日'], format='%Y年%m月%d日')
+    call_centers['日'] = pd.to_datetime(call_centers['日'].astype(float), unit="D", origin=pd.Timestamp("1899/12/30"))
     call_centers['日'] = call_centers['日'].dt.strftime('%Y-%m-%d')
 
+    call_centers = call_centers[call_centers['相談対応件数'].isna() == False]
+
     call_centers['相談対応件数'] = call_centers['相談対応件数'].astype(int)
-
     call_centers['帰国者・接触者外来を紹介した人数'] = call_centers['帰国者・接触者外来を紹介した人数'].astype(int)
-
-    call_centers = call_centers[['日', '曜日', '相談対応件数', '帰国者・接触者外来を紹介した人数', '備考']]
 
     return call_centers
 
