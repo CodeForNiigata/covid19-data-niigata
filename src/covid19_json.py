@@ -128,13 +128,11 @@ def get_patients():
 
 
 def get_patients_summary():
+    confirm_negative = pd.read_csv('./dist/csv/150002_niigata_covid19_confirm_negative.csv')
     patients = pd.read_csv('./dist/csv/150002_niigata_covid19_patients.csv')
-    updated_at = pd.read_csv('./dist/csv/updated_at.csv')
-    updated_at = updated_at.set_index('name')
 
-    last_date = updated_at.at['patients', 'updated_at']
-    last_date = dt.datetime.strptime(last_date, '%Y-%m-%dT%H:%M:%S.000Z')
-    last_date = dt.date(last_date.year, last_date.month, last_date.day)
+    confirm_negative['_date'] = pd.to_datetime(confirm_negative['完了_年月日'], format=DATE)
+    last_date = confirm_negative['_date'].max()
 
     patients['_date'] = pd.to_datetime(patients['公表_年月日'], format=DATE)
     first_date = patients['_date'].min()
