@@ -22,7 +22,7 @@ def create_update_date():
 
     houkoku_date = ''
     soudan_kensa_date = ''
-    paragraphs = soup.select('h3:contains("県内における「帰国者・接触者相談センター」への相談件数及び検査件数") + p')
+    paragraphs = soup.select('h3:contains("県内における「新潟県新型コロナ受診・相談センター(旧帰国者・接触者相談センター)」への相談件数及び検査件数") + p + p')
     if len(paragraphs) == 1:
         soudan_kensa_text = paragraphs[0].get_text()
         soudan_kensa_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日公表分（(\w+)時(\w+)分.*', soudan_kensa_text)
