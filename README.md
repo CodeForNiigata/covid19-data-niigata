@@ -14,7 +14,6 @@ get niigata covid19 data
 
 - Python
 - Pipenv
-- Java 13
 
 ## Usage
 
@@ -26,7 +25,7 @@ $ vim dist/csv/150002_niigata_covid19_patients.csv
 $ pipenv run main
 
 # 県のページからデータを取得する
-$ pipenv run pdf
+$ pipenv run dl
 
 # 取得したデータから標準形式のCSVを生成する
 $ pipenv run csv
