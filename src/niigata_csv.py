@@ -48,7 +48,12 @@ def get_patients():
     patients = pd.DataFrame(records, columns=columns)
 
     # 欠番を除去
-    patients = patients[patients['判明日'] != '―']
+    patients = patients[
+        (patients['年代'] != '―') |
+        (patients['性別'] != '―') |
+        (patients['居住地'] != '―') |
+        (patients['職業'] != '―')
+        ]
 
     # 改行の除去
     patients['患者No.'] = patients['患者No.'].str.replace('\n', '', regex=True)
