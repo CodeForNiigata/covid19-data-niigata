@@ -75,6 +75,12 @@ def get_patients():
     patients['性別'] = patients['性別'].str.replace('[-―－]', '', regex=True)
     patients['職業'] = patients['職業'].str.replace('[-―－]', '', regex=True)
 
+    # 曜日を除去する
+    patients['判明日'] = patients['判明日'].str.replace('（.*曜日', '', regex=True)
+    patients['判明日'] = patients['判明日'].str.replace('）', '', regex=True)
+    patients['判明日'] = patients['判明日'].str.replace('(.*曜日)', '', regex=True)
+    patients['判明日'] = patients['判明日'].str.replace(')', '', regex=True)
+
     # 型変換
     patients['患者No.'] = patients['患者No.'].astype(int)
     patients['判明日'] = '2020年' + patients['判明日']
