@@ -114,7 +114,7 @@ def get_url():
 
     links = soup.select('a:contains("センター相談件数")')
     soudan_url = base_url + links[1].get('href')
-    links = soup.select('a:contains("検査件数")')
+    links = soup.select('a:contains("検査件数一覧")')
     kensa_url = base_url + links[1].get('href')
 
     return soudan_url, kensa_url
