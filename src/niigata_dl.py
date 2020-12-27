@@ -20,19 +20,25 @@ def create_update_date():
     page = requests.get(page_url)
     soup = BeautifulSoup(page.content, 'html.parser')
 
-    houkoku_date = ''
-    soudan_kensa_date = ''
-    paragraphs = soup.select('h3:contains("県内における「新潟県新型コロナ受診・相談センター(旧帰国者・接触者相談センター)」への相談件数及び検査件数") + p + p')
-    if len(paragraphs) == 1:
-        soudan_kensa_text = paragraphs[0].get_text()
-        soudan_kensa_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日公表分（(\w+)時(\w+)分.*', soudan_kensa_text)
-        (_, month, day, hour, minute) = soudan_kensa_matches.groups()
-        month = to_half_width(month).zfill(2)
-        day = to_half_width(day).zfill(2)
-        hour = to_half_width(hour).zfill(2)
-        minute = to_half_width(minute).zfill(2)
-        houkoku_date = f"2020-{month}-{day}T{hour}:{minute}:00.000Z"
-        soudan_kensa_date = f"2020-{month}-{day}T{hour}:{minute}:00.000Z"
+    soudan_paragraphs = soup.select('p:contains("（1）新潟県新型コロナ受診・相談センター") + p')
+    soudan_text = soudan_paragraphs[0].get_text()
+    soudan_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日公表分（(\w+)時(\w+)分.*', soudan_text)
+    (_, month, day, hour, minute) = soudan_matches.groups()
+    month = to_half_width(month).zfill(2)
+    day = to_half_width(day).zfill(2)
+    hour = to_half_width(hour).zfill(2)
+    minute = to_half_width(minute).zfill(2)
+    soudan_date = f"2020-{month}-{day}T{hour}:{minute}:00.000Z"
+
+    kensa_paragraphs = soup.select('p:contains("（2）検査件数")')
+    kensa_text = kensa_paragraphs[0].get_text()
+    kensa_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日公表分（(\w+)時(\w+)分.*', kensa_text)
+    (_, month, day, hour, minute) = kensa_matches.groups()
+    month = to_half_width(month).zfill(2)
+    day = to_half_width(day).zfill(2)
+    hour = to_half_width(hour).zfill(2)
+    minute = to_half_width(minute).zfill(2)
+    kensa_date = f"2020-{month}-{day}T{hour}:{minute}:00.000Z"
 
     df = pd.DataFrame({
         'name': [
@@ -43,11 +49,11 @@ def create_update_date():
             'test_people',
         ],
         'updated_at': [
-            soudan_kensa_date,
-            soudan_kensa_date,
-            houkoku_date,
-            soudan_kensa_date,
-            soudan_kensa_date,
+            soudan_date,
+            kensa_date,
+            kensa_date,
+            kensa_date,
+            kensa_date,
         ]
     })
     df.to_csv('./dist/csv/updated_at.csv', index=False)
