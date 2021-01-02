@@ -83,7 +83,8 @@ def get_patients():
 
     # 型変換
     patients['患者No.'] = patients['患者No.'].astype(int)
-    patients['判明日'] = '2020年' + patients['判明日']
+    patients.loc[patients['患者No.'] < 548, '判明日'] = '2020年' + patients['判明日']
+    patients.loc[patients['患者No.'] >= 548, '判明日'] = '2021年' + patients['判明日']
     patients['判明日'] = pd.to_datetime(patients['判明日'], format='%Y年%m月%d日')
     patients['判明日'] = patients['判明日'].dt.strftime('%Y-%m-%d')
 
