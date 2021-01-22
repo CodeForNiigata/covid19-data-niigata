@@ -169,9 +169,7 @@ def get_call_centers():
     call_centers['日'] = call_centers['日'].dt.strftime('%Y-%m-%d')
 
     call_centers = call_centers[call_centers['相談対応件数'].isna() == False]
-
     call_centers['相談対応件数'] = call_centers['相談対応件数'].astype(int)
-    call_centers['帰国者・接触者外来を紹介した人数'] = call_centers['帰国者・接触者外来を紹介した人数'].astype(int)
 
     return call_centers
 
