@@ -18,6 +18,7 @@ pandas = "*"
 requests = "*"
 simplejson = "*"
 xlrd = "*"
+numpy = "==1.18"
 
 [requires]
 python_version = "3.8"
