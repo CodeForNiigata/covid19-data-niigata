@@ -28,7 +28,7 @@ def create_update_date():
     day = to_half_width(day).zfill(2)
     hour = to_half_width(hour).zfill(2)
     minute = to_half_width(minute).zfill(2)
-    soudan_date = f"2020-{month}-{day}T{hour}:{minute}:00.000Z"
+    soudan_date = f"2021-{month}-{day}T{hour}:{minute}:00.000Z"
 
     kensa_paragraphs = soup.select('p:contains("（2）検査件数")')
     kensa_text = kensa_paragraphs[0].get_text()
@@ -38,7 +38,7 @@ def create_update_date():
     day = to_half_width(day).zfill(2)
     hour = to_half_width(hour).zfill(2)
     minute = to_half_width(minute).zfill(2)
-    kensa_date = f"2020-{month}-{day}T{hour}:{minute}:00.000Z"
+    kensa_date = f"2021-{month}-{day}T{hour}:{minute}:00.000Z"
 
     df = pd.DataFrame({
         'name': [
