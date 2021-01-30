@@ -5,6 +5,20 @@ import requests
 
 base_url = 'https://www.pref.niigata.lg.jp'
 
+digits_zenkaku_table = str.maketrans({
+    '０': '0',
+    '１': '1',
+    '２': '2',
+    '３': '3',
+    '４': '4',
+    '５': '5',
+    '６': '6',
+    '７': '7',
+    '８': '8',
+    '９': '9',
+})
+
+
 def main():
     create_positive_patients()
     create_inspectors()
@@ -80,6 +94,9 @@ def get_patients():
     patients['判明日'] = patients['判明日'].str.replace('）', '', regex=True)
     patients['判明日'] = patients['判明日'].str.replace('(.*曜日)', '', regex=True)
     patients['判明日'] = patients['判明日'].str.replace(')', '', regex=True)
+
+    # 全角数字を半角数字にする
+    patients['判明日'] = patients['判明日'].str.translate(digits_zenkaku_table)
 
     # 型変換
     patients['患者No.'] = patients['患者No.'].astype(int)
