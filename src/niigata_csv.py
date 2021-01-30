@@ -65,6 +65,7 @@ def get_patients():
     patients['患者No.'] = patients['患者No.'].str.replace('\n', '', regex=True)
     patients['判明日'] = patients['判明日'].str.replace('\n', '', regex=True)
     patients['年代'] = patients['年代'].str.replace('\n', '', regex=True)
+    patients['性別'] = patients['性別'].str.replace('\n', '', regex=True)
     patients['居住地'] = patients['居住地'].str.replace('\n', '', regex=True)
     patients['職業'] = patients['職業'].str.replace('\n', '', regex=True)
 
