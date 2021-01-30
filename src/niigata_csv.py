@@ -61,20 +61,15 @@ def get_patients():
     columns = ['患者No.', '判明日', '年代', '性別', '居住地', '職業']
     patients = pd.DataFrame(records, columns=columns)
 
-    # 欠番を除去
-    patients = patients[
-        (patients['年代'] != '―') |
-        (patients['性別'] != '―') |
-        (patients['居住地'] != '―') |
-        (patients['職業'] != '―')
-        ]
-
     # 改行の除去
     patients['患者No.'] = patients['患者No.'].str.replace('\n', '', regex=True)
     patients['判明日'] = patients['判明日'].str.replace('\n', '', regex=True)
     patients['年代'] = patients['年代'].str.replace('\n', '', regex=True)
     patients['居住地'] = patients['居住地'].str.replace('\n', '', regex=True)
     patients['職業'] = patients['職業'].str.replace('\n', '', regex=True)
+
+    # 欠番を除去
+    patients = patients[patients['判明日'] != '-']
 
     # カッコの中身を消す
     patients['判明日'] = patients['判明日'].str.replace('[\(（].*[\)）]', '', regex=True)
