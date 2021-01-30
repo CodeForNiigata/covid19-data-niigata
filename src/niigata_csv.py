@@ -262,7 +262,21 @@ def create_positive_patients():
         '患者_退院済フラグ',
         '備考',
     ]]
-    positive_patient.to_csv('dist/csv/150002_niigata_covid19_patients.csv', index=False)
+
+    path = './dist/xlsx/150002_niigata_covid19_patients_300.xlsx'
+    dtype = {
+        'No': 'object',
+        '全国地方公共団体コード': 'object',
+        '公表_年月日': 'object',
+    }
+    past_patient_300 = pd.read_excel(path, dtype = dtype)
+    past_patient_300 = past_patient_300[past_patient_300['No'].isna() == False]
+    merged = pd.concat([past_patient_300, positive_patient])
+    merged['No'] = merged['No'].astype(int)
+    merged = merged.sort_values('No')
+    merged['No'] = merged['No'].astype(str)
+
+    merged.to_csv('dist/csv/150002_niigata_covid19_patients.csv', index=False)
 
 
 # 検査実施件数
