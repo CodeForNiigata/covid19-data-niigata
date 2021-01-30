@@ -102,6 +102,8 @@ def get_patients():
     patients['判明日'] = patients['判明日'].dt.strftime('%Y-%m-%d')
 
     patients = patients.sort_values('患者No.')
+    patients['患者No.'] = patients['患者No.'].astype(str)
+
     return patients
 
 
@@ -225,8 +227,7 @@ def create_positive_patients():
     positive_patient = pd.merge(positive_patient, city_table, on='city_name', how='left')
     positive_patient = pd.merge(positive_patient, ku_table, on='city_name', how='left')
 
-    serial_num = pd.RangeIndex(start=1, stop=len(positive_patient.index) + 1, step=1)
-    positive_patient['No'] = serial_num
+    positive_patient['No'] = positive_patient['患者No.']
     positive_patient.loc[positive_patient['code_y'].isna(), '全国地方公共団体コード'] = positive_patient['code_x']
     positive_patient.loc[positive_patient['code_x'].isna(), '全国地方公共団体コード'] = positive_patient['code_y']
     positive_patient.loc[positive_patient['全国地方公共団体コード'].isna(), '全国地方公共団体コード'] = positive_patient['code_y']
