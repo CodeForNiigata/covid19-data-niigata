@@ -5,6 +5,20 @@ import requests
 
 base_url = 'https://www.pref.niigata.lg.jp'
 
+digits_zenkaku_table = str.maketrans({
+    '０': '0',
+    '１': '1',
+    '２': '2',
+    '３': '3',
+    '４': '4',
+    '５': '5',
+    '６': '6',
+    '７': '7',
+    '８': '8',
+    '９': '9',
+})
+
+
 def main():
     create_positive_patients()
     create_inspectors()
@@ -47,20 +61,16 @@ def get_patients():
     columns = ['患者No.', '判明日', '年代', '性別', '居住地', '職業']
     patients = pd.DataFrame(records, columns=columns)
 
-    # 欠番を除去
-    patients = patients[
-        (patients['年代'] != '―') |
-        (patients['性別'] != '―') |
-        (patients['居住地'] != '―') |
-        (patients['職業'] != '―')
-        ]
-
     # 改行の除去
     patients['患者No.'] = patients['患者No.'].str.replace('\n', '', regex=True)
     patients['判明日'] = patients['判明日'].str.replace('\n', '', regex=True)
     patients['年代'] = patients['年代'].str.replace('\n', '', regex=True)
+    patients['性別'] = patients['性別'].str.replace('\n', '', regex=True)
     patients['居住地'] = patients['居住地'].str.replace('\n', '', regex=True)
     patients['職業'] = patients['職業'].str.replace('\n', '', regex=True)
+
+    # 欠番を除去
+    patients = patients[patients['判明日'] != '-']
 
     # カッコの中身を消す
     patients['判明日'] = patients['判明日'].str.replace('[\(（].*[\)）]', '', regex=True)
@@ -81,6 +91,9 @@ def get_patients():
     patients['判明日'] = patients['判明日'].str.replace('(.*曜日)', '', regex=True)
     patients['判明日'] = patients['判明日'].str.replace(')', '', regex=True)
 
+    # 全角数字を半角数字にする
+    patients['判明日'] = patients['判明日'].str.translate(digits_zenkaku_table)
+
     # 型変換
     patients['患者No.'] = patients['患者No.'].astype(int)
     patients.loc[patients['患者No.'] < 548, '判明日'] = '2020年' + patients['判明日']
@@ -89,6 +102,8 @@ def get_patients():
     patients['判明日'] = patients['判明日'].dt.strftime('%Y-%m-%d')
 
     patients = patients.sort_values('患者No.')
+    patients['患者No.'] = patients['患者No.'].astype(str)
+
     return patients
 
 
@@ -212,8 +227,7 @@ def create_positive_patients():
     positive_patient = pd.merge(positive_patient, city_table, on='city_name', how='left')
     positive_patient = pd.merge(positive_patient, ku_table, on='city_name', how='left')
 
-    serial_num = pd.RangeIndex(start=1, stop=len(positive_patient.index) + 1, step=1)
-    positive_patient['No'] = serial_num
+    positive_patient['No'] = positive_patient['患者No.']
     positive_patient.loc[positive_patient['code_y'].isna(), '全国地方公共団体コード'] = positive_patient['code_x']
     positive_patient.loc[positive_patient['code_x'].isna(), '全国地方公共団体コード'] = positive_patient['code_y']
     positive_patient.loc[positive_patient['全国地方公共団体コード'].isna(), '全国地方公共団体コード'] = positive_patient['code_y']
@@ -248,7 +262,21 @@ def create_positive_patients():
         '患者_退院済フラグ',
         '備考',
     ]]
-    positive_patient.to_csv('dist/csv/150002_niigata_covid19_patients.csv', index=False)
+
+    path = './dist/xlsx/150002_niigata_covid19_patients_300.xlsx'
+    dtype = {
+        'No': 'object',
+        '全国地方公共団体コード': 'object',
+        '公表_年月日': 'object',
+    }
+    past_patient_300 = pd.read_excel(path, dtype = dtype)
+    past_patient_300 = past_patient_300[past_patient_300['No'].isna() == False]
+    merged = pd.concat([past_patient_300, positive_patient])
+    merged['No'] = merged['No'].astype(int)
+    merged = merged.sort_values('No')
+    merged['No'] = merged['No'].astype(str)
+
+    merged.to_csv('dist/csv/150002_niigata_covid19_patients.csv', index=False)
 
 
 # 検査実施件数
