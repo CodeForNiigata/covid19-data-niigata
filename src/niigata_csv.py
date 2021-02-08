@@ -135,6 +135,7 @@ def get_tests():
     tests = tests[tests['検査実施日'] != '11月']
     tests = tests[tests['検査実施日'] != '12月']
     tests = tests[tests['検査実施日'] != '合計']
+    tests = tests[tests['検査実施曜日'].isna() == False] # 合計の下の注釈の行
 
     # 型をいい感じに
     tests['検査実施日'] = pd.to_datetime(tests['検査実施日'].astype(float), unit="D", origin=pd.Timestamp("1899/12/30"))
