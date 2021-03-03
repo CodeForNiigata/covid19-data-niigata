@@ -80,7 +80,7 @@ def create_hospitalization():
         in_count = int(to_half_width(in_count))
 
     # 宿泊療養中
-    if subject.find_all('th')[4].get_text() == "宿泊療養中":
+    if "宿泊療養中" in subject.find_all('th')[4].get_text():
         in_hotel_text = data.find_all('td')[3].get_text()
         in_hotel_match = matcher.search(in_hotel_text)
         [in_hotel_count] = in_hotel_match.groups()
