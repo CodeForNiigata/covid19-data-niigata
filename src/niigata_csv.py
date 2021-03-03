@@ -157,13 +157,12 @@ def get_tests():
 
 def get_call_centers():
     path = './dist/xlsx/150002_niigata_covid19_call_center.xlsx'
-    call_centers = pd.read_excel(path, skiprows=[0, 1, 2], skipfooter=3)
+    call_centers = pd.read_excel(path, skiprows=[0, 1, 2], skipfooter=1)
     call_centers = call_centers.rename(columns={
         '日': '年号',
         'Unnamed: 1': '日',
         '曜日': '曜日',
         '相談対応件数（件）': '相談対応件数',
-        '帰国者・接触者外来を\n紹介した人数（人）（注）': '帰国者・接触者外来を紹介した人数',
         '備考': '備考',
     })
 

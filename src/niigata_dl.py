@@ -70,21 +70,21 @@ def create_hospitalization():
     subject = table.select_one('tbody > tr:nth-of-type(1)')
     data = table.select_one('tbody > tr:nth-of-type(2)')
 
-    matcher = re.compile('([0-9０-９]+)')
+    matcher = re.compile('([0-9０-９\,]+)')
 
     # 入院中
     if "入院中" in subject.find_all('th')[2].get_text():
         in_text = data.find_all('td')[1].get_text()
         in_match = matcher.search(in_text)
         [in_count] = in_match.groups()
-        in_count = int(to_half_width(in_count))
+        in_count = int(to_half_width(in_count.replace(',', '')))
 
     # 宿泊療養中
-    if subject.find_all('th')[4].get_text() == "宿泊療養中":
+    if "宿泊療養中" in subject.find_all('th')[4].get_text():
         in_hotel_text = data.find_all('td')[3].get_text()
         in_hotel_match = matcher.search(in_hotel_text)
         [in_hotel_count] = in_hotel_match.groups()
-        in_hotel_count = int(to_half_width(in_hotel_count))
+        in_hotel_count = int(to_half_width(in_hotel_count.replace(',', '')))
         in_count = in_count + in_hotel_count
 
     # 退院済み
@@ -94,7 +94,7 @@ def create_hospitalization():
         out_text = data.find_all('td')[4].get_text()
         out_match = matcher.search(out_text)
         [out_count] = out_match.groups()
-        out_count = int(to_half_width(out_count))
+        out_count = int(to_half_width(out_count.replace(',', '')))
 
     df = pd.DataFrame({
         'type': [
