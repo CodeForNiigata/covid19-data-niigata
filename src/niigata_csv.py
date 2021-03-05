@@ -167,6 +167,7 @@ def get_call_centers():
     })
 
     # 年号は無視
+    call_centers = call_centers[call_centers['日'] != '1月']
     call_centers = call_centers[call_centers['日'] != '2月']
     call_centers = call_centers[call_centers['日'] != '3月']
     call_centers = call_centers[call_centers['日'] != '4月']
