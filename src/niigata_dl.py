@@ -79,13 +79,14 @@ def create_hospitalization():
         [in_count] = in_match.groups()
         in_count = int(to_half_width(in_count.replace(',', '')))
 
-    # 宿泊療養中
-    if "宿泊療養中" in subject.find_all('th')[4].get_text():
-        in_hotel_text = data.find_all('td')[3].get_text()
-        in_hotel_match = matcher.search(in_hotel_text)
-        [in_hotel_count] = in_hotel_match.groups()
-        in_hotel_count = int(to_half_width(in_hotel_count.replace(',', '')))
-        in_count = in_count + in_hotel_count
+    # 重症者
+    seriously_count = ''
+
+    if "うち重症者" in subject.find_all('th')[3].get_text():
+        seriously_text = data.find_all('td')[2].get_text()
+        seriously_match = matcher.search(seriously_text)
+        [seriously_count] = seriously_match.groups()
+        seriously_count = int(to_half_width(seriously_count.replace(',', '')))
 
     # 退院済み
     out_count = ''
@@ -96,14 +97,26 @@ def create_hospitalization():
         [out_count] = out_match.groups()
         out_count = int(to_half_width(out_count.replace(',', '')))
 
+    # 死亡
+    decease_count = ''
+    if subject.find_all('th')[6].get_text() == "うち死亡":
+        decease_text = data.find_all('td')[5].get_text()
+        decease_match = matcher.search(decease_text)
+        [decease_count] = decease_match.groups()
+        decease_count = int(to_half_width(decease_count.replace(',', '')))
+
     df = pd.DataFrame({
         'type': [
             'hospitalization',
+            'seriously',
             'discharge',
+            'decease',
         ],
         'count': [
             int(in_count),
+            int(seriously_count),
             int(out_count),
+            int(decease_count),
         ]
     })
     df.to_csv('./dist/csv/hospitalization.csv', index=False)

@@ -228,6 +228,12 @@ def get_main_summary():
     inspections = pd.merge(test_count, confirm_negative, on='_date')
     inspections['_date'] = pd.to_datetime(inspections['_date'], format=DATE)
 
+    hospitalization_count = int(hospitalization.loc['hospitalization']['count'])
+    seriously_count = int(hospitalization.loc['seriously']['count'])
+    mild_count = hospitalization_count - seriously_count
+    discharge_count = int(hospitalization.loc['discharge']['count'])
+    decease_count = int(hospitalization.loc['decease']['count'])
+
     # TODO 新潟に存在しないデータも計算すべき
     return {
         'attr': '検査実施人数',
@@ -239,25 +245,25 @@ def get_main_summary():
                 'children': [
                     {
                         'attr': '入院中',
-                        'value': int(hospitalization.loc['hospitalization']['count']),
+                        'value': hospitalization_count,
                         'children': [
                             {
                                 'attr': '軽症・中等症',
-                                'value': None
+                                'value': mild_count
                             },
                             {
                                 'attr': '重症',
-                                'value': None
+                                'value': seriously_count
                             }
                         ]
                     },
                     {
                         'attr': '退院',
-                        'value': int(hospitalization.loc['discharge']['count'])
+                        'value': discharge_count
                     },
                     {
                         'attr': '死亡',
-                        'value': None
+                        'value': decease_count
                     }
                 ]
             }
