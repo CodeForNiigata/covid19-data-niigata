@@ -22,22 +22,22 @@ def create_update_date():
 
     soudan_paragraphs = soup.select('p:contains("（1）新潟県新型コロナ受診・相談センター") + p')
     soudan_text = soudan_paragraphs[0].get_text()
-    soudan_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日公表分（(\w+)時(\w+)分.*', soudan_text)
-    (_, month, day, hour, minute) = soudan_matches.groups()
+    soudan_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日公表分（(\w+)時.*', soudan_text)
+    (_, month, day, hour) = soudan_matches.groups()
     month = to_half_width(month).zfill(2)
     day = to_half_width(day).zfill(2)
     hour = to_half_width(hour).zfill(2)
-    minute = to_half_width(minute).zfill(2)
+    minute = '0'
     soudan_date = f"2021-{month}-{day}T{hour}:{minute}:00.000Z"
 
-    kensa_paragraphs = soup.select('p:contains("（2）検査件数")')
+    kensa_paragraphs = soup.select('p:contains("（2）検査件数") + p')
     kensa_text = kensa_paragraphs[0].get_text()
-    kensa_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日公表分（(\w+)時(\w+)分.*', kensa_text)
-    (_, month, day, hour, minute) = kensa_matches.groups()
+    kensa_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日公表分（(\w+)時.*', kensa_text)
+    (_, month, day, hour) = kensa_matches.groups()
     month = to_half_width(month).zfill(2)
     day = to_half_width(day).zfill(2)
     hour = to_half_width(hour).zfill(2)
-    minute = to_half_width(minute).zfill(2)
+    minute = '0'
     kensa_date = f"2021-{month}-{day}T{hour}:{minute}:00.000Z"
 
     df = pd.DataFrame({
