@@ -109,33 +109,17 @@ def get_patients():
 
 def get_tests():
     path = './dist/xlsx/150002_niigata_covid19_test.xlsx'
-    tests = pd.read_excel(path, skiprows=[0, 1, 2, 3, 5], skipfooter=2, header=0, index_col=None, sheet_name='HP用検査表（月別）')
+    tests = pd.read_excel(path, skiprows=[0, 1, 2], skipfooter=2, header=0, index_col=None, sheet_name='HP用検査表（月毎）')
     tests = tests.rename(columns={
-        'Unnamed: 0': '検査実施日',
-        'Unnamed: 1': '検査実施曜日',
-        '帰国者・接触者外来／地域外来・検査ｾﾝﾀｰ（PCRｾﾝﾀｰ）における検査件数': 'PCR検査_医療機関以外_検査件数',
-        'Unnamed: 3': 'PCR検査_PCRセンター_検査件数',
-        '医療機関が実施する\n検査件数※１': 'PCR検査_医療機関_検査件数',
-        'PCR検査件数\n合計': 'PCR検査_検査件数',
-        'うち陽性件数※２': 'PCR検査_陽性件数',
-        '医療機関が実施する\n検査件数※１.1': '抗原検査_検査件数',
-        'うち陽性件数': '抗原検査_陽性件数',
+        '月日': '検査実施日',
+        '曜日': '検査実施曜日',
+        '検査件数': 'PCR検査_検査件数',
+        '陽性件数※': 'PCR検査_陽性件数',
+        '検査件数.1': '抗原検査_検査件数',
+        '陽性件数': '抗原検査_陽性件数',
     })
-
     # いらないデータの除去
-    tests = tests[tests['検査実施日'] != '2月']
-    tests = tests[tests['検査実施日'] != '3月']
-    tests = tests[tests['検査実施日'] != '4月']
-    tests = tests[tests['検査実施日'] != '5月']
-    tests = tests[tests['検査実施日'] != '6月']
-    tests = tests[tests['検査実施日'] != '7月']
-    tests = tests[tests['検査実施日'] != '8月']
-    tests = tests[tests['検査実施日'] != '9月']
-    tests = tests[tests['検査実施日'] != '10月']
-    tests = tests[tests['検査実施日'] != '11月']
-    tests = tests[tests['検査実施日'] != '12月']
-    tests = tests[tests['検査実施日'] != '合計']
-    tests = tests[tests['検査実施曜日'].isna() == False] # 合計の下の注釈の行
+    tests = tests[tests['検査実施曜日'].isna() == False]
 
     # 型をいい感じに
     tests['検査実施日'] = pd.to_datetime(tests['検査実施日'].astype(float), unit="D", origin=pd.Timestamp("1899/12/30"))
@@ -149,6 +133,7 @@ def get_tests():
     tests['結果判明日'] = tests['検査実施日']
     tests['検査件数'] = tests['PCR検査_検査件数']
     tests['うち陽性件数'] = tests['PCR検査_陽性件数']
+
 
     tests = tests[['結果判明日', '検査件数', 'うち陽性件数']]
 

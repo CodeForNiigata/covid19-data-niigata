@@ -22,22 +22,22 @@ def create_update_date():
 
     soudan_paragraphs = soup.select('p:contains("（1）新潟県新型コロナ受診・相談センター") + p')
     soudan_text = soudan_paragraphs[0].get_text()
-    soudan_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日公表分（(\w+)時(\w+)分.*', soudan_text)
-    (_, month, day, hour, minute) = soudan_matches.groups()
+    soudan_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日公表分（(\w+)時.*', soudan_text)
+    (_, month, day, hour) = soudan_matches.groups()
     month = to_half_width(month).zfill(2)
     day = to_half_width(day).zfill(2)
     hour = to_half_width(hour).zfill(2)
-    minute = to_half_width(minute).zfill(2)
+    minute = '0'
     soudan_date = f"2021-{month}-{day}T{hour}:{minute}:00.000Z"
 
-    kensa_paragraphs = soup.select('p:contains("（2）検査件数")')
+    kensa_paragraphs = soup.select('p:contains("（2）検査件数") + p')
     kensa_text = kensa_paragraphs[0].get_text()
-    kensa_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日公表分（(\w+)時(\w+)分.*', kensa_text)
-    (_, month, day, hour, minute) = kensa_matches.groups()
+    kensa_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日公表分（(\w+)時.*', kensa_text)
+    (_, month, day, hour) = kensa_matches.groups()
     month = to_half_width(month).zfill(2)
     day = to_half_width(day).zfill(2)
     hour = to_half_width(hour).zfill(2)
-    minute = to_half_width(minute).zfill(2)
+    minute = '0'
     kensa_date = f"2021-{month}-{day}T{hour}:{minute}:00.000Z"
 
     df = pd.DataFrame({
@@ -79,13 +79,14 @@ def create_hospitalization():
         [in_count] = in_match.groups()
         in_count = int(to_half_width(in_count.replace(',', '')))
 
-    # 宿泊療養中
-    if "宿泊療養中" in subject.find_all('th')[4].get_text():
-        in_hotel_text = data.find_all('td')[3].get_text()
-        in_hotel_match = matcher.search(in_hotel_text)
-        [in_hotel_count] = in_hotel_match.groups()
-        in_hotel_count = int(to_half_width(in_hotel_count.replace(',', '')))
-        in_count = in_count + in_hotel_count
+    # 重症者
+    seriously_count = ''
+
+    if "うち重症者" in subject.find_all('th')[3].get_text():
+        seriously_text = data.find_all('td')[2].get_text()
+        seriously_match = matcher.search(seriously_text)
+        [seriously_count] = seriously_match.groups()
+        seriously_count = int(to_half_width(seriously_count.replace(',', '')))
 
     # 退院済み
     out_count = ''
@@ -96,14 +97,26 @@ def create_hospitalization():
         [out_count] = out_match.groups()
         out_count = int(to_half_width(out_count.replace(',', '')))
 
+    # 死亡
+    decease_count = ''
+    if subject.find_all('th')[6].get_text() == "うち死亡":
+        decease_text = data.find_all('td')[5].get_text()
+        decease_match = matcher.search(decease_text)
+        [decease_count] = decease_match.groups()
+        decease_count = int(to_half_width(decease_count.replace(',', '')))
+
     df = pd.DataFrame({
         'type': [
             'hospitalization',
+            'seriously',
             'discharge',
+            'decease',
         ],
         'count': [
             int(in_count),
+            int(seriously_count),
             int(out_count),
+            int(decease_count),
         ]
     })
     df.to_csv('./dist/csv/hospitalization.csv', index=False)
