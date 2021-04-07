@@ -71,6 +71,7 @@ def get_patients():
 
     # 欠番を除去
     patients = patients[patients['判明日'] != '-']
+    patients = patients[patients['判明日'] != '－']
 
     # カッコの中身を消す
     patients['判明日'] = patients['判明日'].str.replace('[\(（].*[\)）]', '', regex=True)
