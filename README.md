@@ -15,6 +15,13 @@ get niigata covid19 data
 - Python
 - Pipenv
 
+
+## Install
+
+```
+$ pipenv install
+```
+
 ## Usage
 
 ```
@@ -34,10 +41,12 @@ $ pipenv run csv
 $ pipenv run json
 ```
 
-## Install
+## Docker
+
+docker-compose upでdistの中身を更新します。
 
 ```
-$ pipenv install
+$ docker-compose up
 ```
 
 ## Note
