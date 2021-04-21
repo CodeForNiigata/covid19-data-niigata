@@ -1,0 +1,7 @@
+version: '3'
+services:
+  main:
+    build: .
+    tty: false
+    volumes:
+      - ./dist:/app/dist
