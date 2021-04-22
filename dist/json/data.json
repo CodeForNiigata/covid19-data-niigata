@@ -30961,21 +30961,21 @@
                 "children": [
                     {
                         "attr": "入院中",
-                        "value": 162,
+                        "value": 164,
                         "children": [
                             {
                                 "attr": "軽症・中等症",
-                                "value": 159
+                                "value": 162
                             },
                             {
                                 "attr": "重症",
-                                "value": 3
+                                "value": 2
                             }
                         ]
                     },
                     {
                         "attr": "退院",
-                        "value": 1721
+                        "value": 1734
                     },
                     {
                         "attr": "死亡",
