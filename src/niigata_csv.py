@@ -135,7 +135,6 @@ def get_tests():
     tests['検査件数'] = tests['PCR検査_検査件数']
     tests['うち陽性件数'] = tests['PCR検査_陽性件数']
 
-
     tests = tests[['結果判明日', '検査件数', 'うち陽性件数']]
 
     return tests
@@ -250,15 +249,15 @@ def create_positive_patients():
         '備考',
     ]]
 
-    path = './dist/xlsx/150002_niigata_covid19_patients_1000.xlsx'
+    path = './dist/xlsx/150002_niigata_covid19_patients_2000.xlsx'
     dtype = {
         'No': 'object',
         '全国地方公共団体コード': 'object',
         '公表_年月日': 'object',
     }
-    past_patient_1000 = pd.read_excel(path, dtype = dtype)
-    past_patient_1000 = past_patient_1000[past_patient_1000['No'].isna() == False]
-    merged = pd.concat([past_patient_1000, positive_patient])
+    past_patient_2000 = pd.read_excel(path, dtype=dtype)
+    past_patient_2000 = past_patient_2000[past_patient_2000['No'].isna() == False]
+    merged = pd.concat([past_patient_2000, positive_patient])
     merged['No'] = merged['No'].astype(int)
     merged = merged.sort_values('No')
     merged['No'] = merged['No'].astype(str)
