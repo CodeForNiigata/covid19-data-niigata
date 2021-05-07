@@ -95,6 +95,9 @@ def get_patients():
     # 全角数字を半角数字にする
     patients['判明日'] = patients['判明日'].str.translate(digits_zenkaku_table)
 
+    # 表記ミスの補正
+    patients['判明日'] = patients['判明日'].str.replace('5日4日', '5月4日', regex=True)
+
     # 型変換
     patients['患者No.'] = patients['患者No.'].astype(int)
     patients.loc[patients['患者No.'] < 548, '判明日'] = '2020年' + patients['判明日']
