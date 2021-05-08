@@ -73,6 +73,9 @@ def get_patients():
     patients = patients[patients['判明日'] != '-']
     patients = patients[patients['判明日'] != '－']
 
+    # 非公表を除去
+    patients = patients[patients['判明日'] != '非公表']
+
     # カッコの中身を消す
     patients['判明日'] = patients['判明日'].str.replace('[\(（].*[\)）]', '', regex=True)
     patients['年代'] = patients['年代'].str.replace('[\(（].*[\)）]', '', regex=True)
