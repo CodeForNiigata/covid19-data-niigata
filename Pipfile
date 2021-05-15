@@ -19,6 +19,7 @@ requests = "*"
 simplejson = "*"
 xlrd = "*"
 numpy = "*"
+tabula-py = "*"
 
 [requires]
 python_version = "3.9"
