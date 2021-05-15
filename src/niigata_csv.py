@@ -1,9 +1,13 @@
 from bs4 import BeautifulSoup
-import numpy as np
+import glob
 import pandas as pd
-import requests
+import re
+from tabula import read_pdf
 
-base_url = 'https://www.pref.niigata.lg.jp'
+
+index_path = 'dist/html/index.html'
+latest_path = 'dist/html/latest.html'
+
 
 digits_zenkaku_table = str.maketrans({
     '０': '0',
@@ -25,10 +29,12 @@ def main():
     create_inspections_performed()
     create_negative_confirmations()
     create_call_center_consultations()
+    create_update_date()
+    create_hospitalization()
 
 
 def get_city_code():
-    city_table = pd.read_excel('./dist/xlsx/city_code.xls', sheet_name='R1.5.1現在の団体')
+    city_table = pd.read_excel('./src/city_code.xls', sheet_name='R1.5.1現在の団体')
     city_table = city_table.rename(columns={
         '団体コード': 'code',
         '都道府県名\n（漢字）': 'pref_name',
@@ -38,7 +44,7 @@ def get_city_code():
     })
     city_table['code'] = city_table['code'].astype(str)
 
-    ku_table = pd.read_excel('./dist/xlsx/city_code.xls', sheet_name='H30.10.1政令指定都市', header=None)
+    ku_table = pd.read_excel('./src/city_code.xls', sheet_name='H30.10.1政令指定都市', header=None)
     ku_table.columns = ['code', 'city_name', 'city_kana']
     ku_table['code'] = ku_table['code'].astype(str)
 
@@ -46,70 +52,51 @@ def get_city_code():
 
 
 def get_patients():
-    page_url = base_url + '/site/shingata-corona/256362836.html'
-    page = requests.get(page_url)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    rows = soup.select('table[summary="県内における感染者の発生状況"] tbody tr')
-
-    records = []
-    for i, row in enumerate(rows):
-        cols = row.select('td')
-        record = [col.getText() for col in cols[2:7]]
-        record.insert(0, cols[0].getText())
-        records.append(record)
-
-    columns = ['患者No.', '判明日', '年代', '性別', '居住地', '職業']
-    patients = pd.DataFrame(records, columns=columns)
-
-    # 改行の除去
-    patients['患者No.'] = patients['患者No.'].str.replace('\n', '', regex=True)
-    patients['判明日'] = patients['判明日'].str.replace('\n', '', regex=True)
-    patients['年代'] = patients['年代'].str.replace('\n', '', regex=True)
-    patients['性別'] = patients['性別'].str.replace('\n', '', regex=True)
-    patients['居住地'] = patients['居住地'].str.replace('\n', '', regex=True)
-    patients['職業'] = patients['職業'].str.replace('\n', '', regex=True)
-
-    # 欠番を除去
+    files = glob.glob('dist/pdf/150002_niigata_covid19_patients_*.pdf')
+    tables = []
+    for file in files:
+        pages = read_pdf(file, pages='all')
+        table = pd.concat(pages)
+        table.columns = [
+            '患者No.',
+            '_',
+            '判明日',
+            '年代',
+            '性別',
+            '居住地',
+            '職業',
+            '濃厚接触者数',
+            '備考',
+        ]
+        tables.append(table)
+    patients = pd.concat(tables)
+    patients = patients.sort_values('患者No.')
+    patients = patients.reset_index(drop=True)
+    
+    patients = patients[patients['患者No.'] != '欠番']
+    patients = patients[patients['備考'].str.contains('取り下げ', na=False) == False]
     patients = patients[patients['判明日'] != '-']
-    patients = patients[patients['判明日'] != '－']
-
-    # 非公表を除去
+    patients = patients[patients['判明日'] != '―']
     patients = patients[patients['判明日'] != '非公表']
 
-    # カッコの中身を消す
-    patients['判明日'] = patients['判明日'].str.replace('[\(（].*[\)）]', '', regex=True)
-    patients['年代'] = patients['年代'].str.replace('[\(（].*[\)）]', '', regex=True)
-
-    # カッコの外側を消す
-    patients['居住地'] = patients['居住地'].str.replace('.*[\(（]', '', regex=True)
-    patients['居住地'] = patients['居住地'].str.replace('[\)）].*', '')
-
-    # データなしを表現する文字の除去
-    patients['年代'] = patients['年代'].str.replace('[-―－]', '', regex=True)
-    patients['性別'] = patients['性別'].str.replace('[-―－]', '', regex=True)
-    patients['職業'] = patients['職業'].str.replace('[-―－]', '', regex=True)
-
-    # 曜日を除去する
-    patients['判明日'] = patients['判明日'].str.replace('（.*曜日', '', regex=True)
-    patients['判明日'] = patients['判明日'].str.replace('）', '', regex=True)
-    patients['判明日'] = patients['判明日'].str.replace('(.*曜日)', '', regex=True)
-    patients['判明日'] = patients['判明日'].str.replace(')', '', regex=True)
-
-    # 全角数字を半角数字にする
-    patients['判明日'] = patients['判明日'].str.translate(digits_zenkaku_table)
-
-    # 表記ミスの補正
     patients['判明日'] = patients['判明日'].str.replace('5日4日', '5月4日', regex=True)
-
-    # 型変換
-    patients['患者No.'] = patients['患者No.'].astype(int)
+    patients['判明日'] = patients['判明日'].str.replace('[(（].*曜日[)）]', '', regex=True)
     patients.loc[patients['患者No.'] < 548, '判明日'] = '2020年' + patients['判明日']
     patients.loc[patients['患者No.'] >= 548, '判明日'] = '2021年' + patients['判明日']
     patients['判明日'] = pd.to_datetime(patients['判明日'], format='%Y年%m月%d日')
     patients['判明日'] = patients['判明日'].dt.strftime('%Y-%m-%d')
 
-    patients = patients.sort_values('患者No.')
-    patients['患者No.'] = patients['患者No.'].astype(str)
+    patients['年代'] = patients['年代'].str.replace('[(（]乳幼児[)）]', '', regex=True)
+    patients['年代'] = patients['年代'].str.replace('\r', '', regex=True)
+    patients['年代'] = patients['年代'].str.replace(' ', '', regex=True)
+    patients['年代'] = patients['年代'].str.replace('[-―－]', '非公表', regex=True)
+    patients['年代'] = patients['年代'].str.replace('非公表', '', regex=True)
+
+    patients['性別'] = patients['性別'].str.replace('[-―－]', '非公表', regex=True)
+    patients['性別'] = patients['性別'].str.replace('非公表', '', regex=True)
+
+    patients['職業'] = patients['職業'].str.replace('[-―－]', '非公表', regex=True)
+    patients['職業'] = patients['職業'].str.replace('非公表', '', regex=True)
 
     return patients
 
@@ -215,16 +202,35 @@ def create_positive_patients():
     (city_table, ku_table) = get_city_code()
     positive_patient = get_patients()
 
-    positive_patient['city_name'] = positive_patient['居住地']
+    positive_patient['市区町村名'] = positive_patient['居住地']
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('.*[(（]', '', regex=True)
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('[)）]', '', regex=True)
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('.*:', '', regex=True)
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('滞在', '')
+
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('江南区', '新潟市江南区')
+
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市内中', '新潟市')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市中', '新潟市')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('市内中', '新潟市')
+
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('柏崎保健所管内', '柏崎市')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('三条保健所管内', '三条市')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('長岡保健所管内', '長岡市')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('南魚沼保健所管内', '南魚沼市')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('村上保健所管内', '村上市')
+
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('埼玉県', '')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('北海道', '')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('東京都', '')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('非公表', '')
+
+    positive_patient['city_name'] = positive_patient['市区町村名']
     positive_patient = pd.merge(positive_patient, city_table, on='city_name', how='left')
     positive_patient = pd.merge(positive_patient, ku_table, on='city_name', how='left')
 
     positive_patient['No'] = positive_patient['患者No.']
-    positive_patient.loc[positive_patient['code_y'].isna(), '全国地方公共団体コード'] = positive_patient['code_x']
-    positive_patient.loc[positive_patient['code_x'].isna(), '全国地方公共団体コード'] = positive_patient['code_y']
-    positive_patient.loc[positive_patient['全国地方公共団体コード'].isna(), '全国地方公共団体コード'] = positive_patient['code_y']
     positive_patient['都道府県名'] = '新潟県'
-    positive_patient['市区町村名'] = positive_patient['居住地']
     positive_patient['公表_年月日'] = positive_patient['判明日']
     positive_patient['発症_年月日'] = ''
     positive_patient['患者_居住地'] = positive_patient['居住地']
@@ -236,6 +242,11 @@ def create_positive_patients():
     positive_patient['患者_渡航歴の有無フラグ'] = ''
     positive_patient['患者_退院済フラグ'] = ''
     positive_patient['備考'] = ''
+
+    positive_patient.loc[positive_patient['code_y'].isna(), '全国地方公共団体コード'] = positive_patient['code_x']
+    positive_patient.loc[positive_patient['code_x'].isna(), '全国地方公共団体コード'] = positive_patient['code_y']
+    positive_patient.loc[positive_patient['全国地方公共団体コード'].isna(), '全国地方公共団体コード'] = positive_patient['code_y']
+    positive_patient.loc[positive_patient['全国地方公共団体コード'].isna(), '全国地方公共団体コード'] = '150002'
 
     positive_patient = positive_patient[[
         'No',
@@ -255,20 +266,7 @@ def create_positive_patients():
         '備考',
     ]]
 
-    path = './dist/xlsx/150002_niigata_covid19_patients_2000.xlsx'
-    dtype = {
-        'No': 'object',
-        '全国地方公共団体コード': 'object',
-        '公表_年月日': 'object',
-    }
-    past_patient_2000 = pd.read_excel(path, dtype=dtype)
-    past_patient_2000 = past_patient_2000[past_patient_2000['No'].isna() == False]
-    merged = pd.concat([past_patient_2000, positive_patient])
-    merged['No'] = merged['No'].astype(int)
-    merged = merged.sort_values('No')
-    merged['No'] = merged['No'].astype(str)
-
-    merged.to_csv('dist/csv/150002_niigata_covid19_patients.csv', index=False)
+    positive_patient.to_csv('dist/csv/150002_niigata_covid19_patients.csv', index=False)
 
 
 # 検査実施件数
@@ -357,6 +355,122 @@ def create_call_center_consultations():
 
     call_center_consultations = pd.concat([old, call_center_consultations])
     call_center_consultations.to_csv('dist/csv/150002_niigata_covid19_call_center.csv', index=False)
+
+
+
+def create_update_date():
+    with open(latest_path) as file:
+        soup = BeautifulSoup(file, 'html.parser')
+
+    patients_text = soup.select_one('.detail_free h2').get_text()
+    patients_match = re.match('県内における感染者の発生状況 （令和(\w+)年(\w+)月(\w+)日現在）', patients_text)
+    (year, month, day) = patients_match.groups()
+    year = str(int(to_half_width(year)) + 2018).zfill(2)
+    month = to_half_width(month).zfill(2)
+    day = to_half_width(day).zfill(2)
+    patients_date = f"{year}-{month}-{day}T00:00:00.000Z"
+
+    soudan_text = soup.select_one('p:contains("（1）新潟県新型コロナ受診・相談センター") + p').get_text()
+    soudan_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日公表分（(\w+)時.*', soudan_text)
+    (year, month, day, hour) = soudan_matches.groups()
+    year = str(int(to_half_width(year)) + 2018).zfill(2)
+    month = to_half_width(month).zfill(2)
+    day = to_half_width(day).zfill(2)
+    hour = to_half_width(hour).zfill(2)
+    soudan_date = f"{year}-{month}-{day}T{hour}:00:00.000Z"
+
+    kensa_text = soup.select_one('p:contains("（2）検査件数") + p').get_text()
+    kensa_matches = re.match('.*令和(\w+)年(\w+)月(\w+)日公表分（(\w+)時.*', kensa_text)
+    (year, month, day, hour) = kensa_matches.groups()
+    year = str(int(to_half_width(year)) + 2018).zfill(2)
+    month = to_half_width(month).zfill(2)
+    day = to_half_width(day).zfill(2)
+    hour = to_half_width(hour).zfill(2)
+    kensa_date = f"2021-{month}-{day}T{hour}:00:00.000Z"
+
+    df = pd.DataFrame({
+        'name': [
+            'call_center',
+            'confirm_negative',
+            'patients',
+            'test_count',
+            'test_people',
+        ],
+        'updated_at': [
+            soudan_date,
+            kensa_date,
+            patients_date,
+            kensa_date,
+            kensa_date,
+        ]
+    })
+    df.to_csv('./dist/csv/updated_at.csv', index=False)
+
+
+def create_hospitalization():
+    with open(index_path) as file:
+        soup = BeautifulSoup(file, 'html.parser')
+
+    in_count = 0
+
+    table = soup.find('table', summary="入退院状況")
+    subject = table.select_one('tbody > tr:nth-of-type(1)')
+    data = table.select_one('tbody > tr:nth-of-type(2)')
+
+    matcher = re.compile('([0-9０-９\,]+)')
+
+    # 入院中
+    if "入院中" in subject.find_all('th')[2].get_text():
+        in_text = data.find_all('td')[1].get_text()
+        in_match = matcher.search(in_text)
+        [in_count] = in_match.groups()
+        in_count = int(to_half_width(in_count.replace(',', '')))
+
+    # 重症者
+    seriously_count = ''
+
+    if "うち重症者" in subject.find_all('th')[3].get_text():
+        seriously_text = data.find_all('td')[2].get_text()
+        seriously_match = matcher.search(seriously_text)
+        [seriously_count] = seriously_match.groups()
+        seriously_count = int(to_half_width(seriously_count.replace(',', '')))
+
+    # 退院済み
+    out_count = ''
+
+    if subject.find_all('th')[5].get_text() == "退院・退所":
+        out_text = data.find_all('td')[4].get_text()
+        out_match = matcher.search(out_text)
+        [out_count] = out_match.groups()
+        out_count = int(to_half_width(out_count.replace(',', '')))
+
+    # 死亡
+    decease_count = ''
+    if subject.find_all('th')[6].get_text() == "うち死亡":
+        decease_text = data.find_all('td')[5].get_text()
+        decease_match = matcher.search(decease_text)
+        [decease_count] = decease_match.groups()
+        decease_count = int(to_half_width(decease_count.replace(',', '')))
+
+    df = pd.DataFrame({
+        'type': [
+            'hospitalization',
+            'seriously',
+            'discharge',
+            'decease',
+        ],
+        'count': [
+            int(in_count),
+            int(seriously_count),
+            int(out_count),
+            int(decease_count),
+        ]
+    })
+    df.to_csv('./dist/csv/hospitalization.csv', index=False)
+
+
+def to_half_width(text):
+    return text.translate(str.maketrans({chr(0xFF01 + i): chr(0x21 + i) for i in range(94)}))
 
 
 if __name__ == '__main__':
