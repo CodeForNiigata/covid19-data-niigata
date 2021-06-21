@@ -44892,11 +44892,11 @@
                 "children": [
                     {
                         "attr": "入院中",
-                        "value": 84,
+                        "value": 65,
                         "children": [
                             {
                                 "attr": "軽症・中等症",
-                                "value": 78
+                                "value": 59
                             },
                             {
                                 "attr": "重症",
@@ -44906,7 +44906,7 @@
                     },
                     {
                         "attr": "退院",
-                        "value": 3292
+                        "value": 3312
                     },
                     {
                         "attr": "死亡",
