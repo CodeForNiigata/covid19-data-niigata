@@ -4,6 +4,8 @@ import pandas as pd
 import re
 from tabula import read_pdf
 
+pd.set_option('display.max_columns', 100)
+pd.set_option('display.unicode.east_asian_width', True)
 
 index_path = 'dist/html/index.html'
 latest_path = 'dist/html/latest.html'
@@ -51,25 +53,92 @@ def get_city_code():
     return city_table, ku_table
 
 
+def _7columns(page):
+    page = pd.concat([page, page['患者 No.'].str.split(' ', expand=True)], axis=1).drop('患者 No.', axis=1)
+    page = pd.concat([page, page['濃厚接触者数 備考'].str.split(' ', expand=True)], axis=1).drop('濃厚接触者数 備考', axis=1)
+    page.columns = [
+        '判明日',
+        '年代',
+        '性別',
+        '居住地',
+        '職業',
+        '患者No.',
+        '_',
+        '濃厚接触者数',
+        '備考',
+    ]
+    page = page[[
+        '患者No.',
+        '_',
+        '判明日',
+        '年代',
+        '性別',
+        '居住地',
+        '職業',
+        '濃厚接触者数',
+        '備考',
+    ]]
+    return page
+
+def _8columns(page):
+    page = pd.concat([page, page['患者 No.'].str.split(' ', expand=True)], axis=1).drop('患者 No.', axis=1)
+    page.columns = [
+        '判明日',
+        '年代',
+        '性別',
+        '居住地',
+        '職業',
+        '濃厚接触者数',
+        '備考',
+        '患者No.',
+        '_',
+    ]
+    page = page[[
+        '患者No.',
+        '_',
+        '判明日',
+        '年代',
+        '性別',
+        '居住地',
+        '職業',
+        '濃厚接触者数',
+        '備考',
+    ]]
+    return page
+
+def _9columns(page):
+    page.columns = [
+        '患者No.',
+        '_',
+        '判明日',
+        '年代',
+        '性別',
+        '居住地',
+        '職業',
+        '濃厚接触者数',
+        '備考',
+    ]
+    return page
+
 def get_patients():
     files = glob.glob('dist/pdf/150002_niigata_covid19_patients_*.pdf')
     tables = []
     for file in files:
         pages = read_pdf(file, pages='all')
+        for index, page in enumerate(pages):
+            if len(page.columns) == 7:
+                pages[index] = _7columns(page)
+            elif len(page.columns) == 8:
+                pages[index] = _8columns(page)
+            elif len(page.columns) == 9:
+                pages[index] = _9columns(page)
+
         table = pd.concat(pages)
-        table.columns = [
-            '患者No.',
-            '_',
-            '判明日',
-            '年代',
-            '性別',
-            '居住地',
-            '職業',
-            '濃厚接触者数',
-            '備考',
-        ]
         tables.append(table)
+
     patients = pd.concat(tables)
+
+    patients['患者No.'] = patients['患者No.'].astype(int)
     patients = patients.sort_values('患者No.')
     patients = patients.reset_index(drop=True)
     

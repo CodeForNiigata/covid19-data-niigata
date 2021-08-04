@@ -35,6 +35,7 @@ def download_patients():
     links = soup.find_all('a', string=pattern)
     urls = [i.attrs['href'] for i in links]
     for index, url in enumerate(urls):
+        print(f'download from {url}')
         __download(f'{base_url}{url}', f'dist/pdf/150002_niigata_covid19_patients_{index}.pdf')
 
 
