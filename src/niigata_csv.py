@@ -4,6 +4,8 @@ import pandas as pd
 import re
 from tabula import read_pdf
 
+pd.set_option('display.max_columns', 100)
+pd.set_option('display.unicode.east_asian_width', True)
 
 index_path = 'dist/html/index.html'
 latest_path = 'dist/html/latest.html'
