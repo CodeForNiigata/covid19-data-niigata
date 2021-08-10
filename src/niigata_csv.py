@@ -160,9 +160,13 @@ def get_patients():
     patients['年代'] = patients['年代'].str.replace(' ', '', regex=True)
     patients['年代'] = patients['年代'].str.replace('[-―－]', '非公表', regex=True)
     patients['年代'] = patients['年代'].str.replace('非公表', '', regex=True)
+    patients['年代'] = patients['年代'].str.replace('90歳代以上', '90歳代', regex=True)
+    patients['年代'] = patients['年代'].str.replace('90歳代', '90歳代以上', regex=True)
+    patients['年代'] = patients['年代'].str.replace('90歳以上', '90歳代以上', regex=True)
 
     patients['性別'] = patients['性別'].str.replace('[-―－]', '非公表', regex=True)
     patients['性別'] = patients['性別'].str.replace('非公表', '', regex=True)
+    patients['性別'] = patients['性別'].str.replace('長岡市', '', regex=True)
 
     patients['職業'] = patients['職業'].str.replace('[-―－]', '非公表', regex=True)
     patients['職業'] = patients['職業'].str.replace('非公表', '', regex=True)
@@ -277,20 +281,32 @@ def create_positive_patients():
     positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('.*:', '', regex=True)
     positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('滞在', '')
 
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('北区', '新潟市北区')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('東区', '新潟市東区')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('中央区', '新潟市中央区')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('江南区', '新潟市江南区')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('秋葉区', '新潟市秋葉区')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('南区', '新潟市南区')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('西区', '新潟市西区')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('西蒲区', '新潟市西蒲区')
+
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('聖篭町', '聖籠町')
 
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市内中', '新潟市')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市中', '新潟市')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('市内中', '新潟市')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('上越市中', '上越市')
 
-    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('柏崎保健所管内', '柏崎市')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('村上保健所管内', '村上市')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新発田保健所管内', '新発田市')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('三条保健所管内', '三条市')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('長岡保健所管内', '長岡市')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('柏崎保健所', '柏崎市')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('柏崎保健所管内', '柏崎市')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('南魚沼保健所管内', '南魚沼市')
-    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('村上保健所管内', '村上市')
 
-    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('埼玉県', '')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('北海道', '')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('埼玉県', '')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('東京都', '')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('非公表', '')
 
