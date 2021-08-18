@@ -120,6 +120,34 @@ def _9columns(page):
     ]
     return page
 
+def _10columns(page):
+    page = pd.concat([page, page['患者 No.'].str.split(' ', expand=True)], axis=1).drop('患者 No.', axis=1)
+    page.columns = [
+        '判明日',
+        '年代',
+        '性別',
+        '居住地',
+        '職業',
+        '_1',
+        '濃厚接触者数',
+        '_2',
+        '備考',
+        '患者No.',
+        '_',
+    ]
+    page = page[[
+        '患者No.',
+        '_',
+        '判明日',
+        '年代',
+        '性別',
+        '居住地',
+        '職業',
+        '濃厚接触者数',
+        '備考',
+    ]]
+    return page
+
 def get_patients():
     files = glob.glob('dist/pdf/150002_niigata_covid19_patients_*.pdf')
     tables = []
@@ -132,6 +160,8 @@ def get_patients():
                 pages[index] = _8columns(page)
             elif len(page.columns) == 9:
                 pages[index] = _9columns(page)
+            elif len(page.columns) == 10:
+                pages[index] = _10columns(page)
 
         table = pd.concat(pages)
         tables.append(table)
