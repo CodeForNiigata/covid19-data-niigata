@@ -120,6 +120,34 @@ def _9columns(page):
     ]
     return page
 
+def _10columns(page):
+    page = pd.concat([page, page['患者 No.'].str.split(' ', expand=True)], axis=1).drop('患者 No.', axis=1)
+    page.columns = [
+        '判明日',
+        '年代',
+        '性別',
+        '居住地',
+        '職業',
+        '_1',
+        '濃厚接触者数',
+        '_2',
+        '備考',
+        '患者No.',
+        '_',
+    ]
+    page = page[[
+        '患者No.',
+        '_',
+        '判明日',
+        '年代',
+        '性別',
+        '居住地',
+        '職業',
+        '濃厚接触者数',
+        '備考',
+    ]]
+    return page
+
 def get_patients():
     files = glob.glob('dist/pdf/150002_niigata_covid19_patients_*.pdf')
     tables = []
@@ -132,6 +160,8 @@ def get_patients():
                 pages[index] = _8columns(page)
             elif len(page.columns) == 9:
                 pages[index] = _9columns(page)
+            elif len(page.columns) == 10:
+                pages[index] = _10columns(page)
 
         table = pd.concat(pages)
         tables.append(table)
@@ -291,6 +321,7 @@ def create_positive_patients():
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('西蒲区', '新潟市西蒲区')
 
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('聖篭町', '聖籠町')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市江新潟市南区', '新潟市江南区')
 
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市内中', '新潟市')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市中', '新潟市')
