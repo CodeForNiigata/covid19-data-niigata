@@ -321,6 +321,7 @@ def create_positive_patients():
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('西蒲区', '新潟市西蒲区')
 
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('聖篭町', '聖籠町')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市江新潟市南区', '新潟市江南区')
 
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市内中', '新潟市')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市中', '新潟市')
