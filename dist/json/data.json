@@ -72085,21 +72085,21 @@
                 "children": [
                     {
                         "attr": "入院中",
-                        "value": 243,
+                        "value": 262,
                         "children": [
                             {
                                 "attr": "軽症・中等症",
-                                "value": 238
+                                "value": 254
                             },
                             {
                                 "attr": "重症",
-                                "value": 5
+                                "value": 8
                             }
                         ]
                     },
                     {
                         "attr": "退院",
-                        "value": 5193
+                        "value": 5255
                     },
                     {
                         "attr": "死亡",
