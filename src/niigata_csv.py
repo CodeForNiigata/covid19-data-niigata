@@ -191,9 +191,10 @@ def get_patients():
     patients['年代'] = patients['年代'].str.replace(' ', '', regex=True)
     patients['年代'] = patients['年代'].str.replace('[-―－]', '非公表', regex=True)
     patients['年代'] = patients['年代'].str.replace('非公表', '', regex=True)
+    patients['年代'] = patients['年代'].str.replace('10歳代未満', '10歳未満', regex=True)
+    patients['年代'] = patients['年代'].str.replace('90歳以上', '90歳代', regex=True)
     patients['年代'] = patients['年代'].str.replace('90歳代以上', '90歳代', regex=True)
-    patients['年代'] = patients['年代'].str.replace('90歳代', '90歳代以上', regex=True)
-    patients['年代'] = patients['年代'].str.replace('90歳以上', '90歳代以上', regex=True)
+    patients['年代'] = patients['年代'].str.replace('90歳代', '90歳以上', regex=True)
 
     patients['性別'] = patients['性別'].str.replace('[-―－]', '非公表', regex=True)
     patients['性別'] = patients['性別'].str.replace('非公表', '', regex=True)
