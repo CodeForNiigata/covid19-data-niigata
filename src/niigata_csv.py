@@ -174,6 +174,7 @@ def get_patients():
     
     patients = patients[patients['患者No.'] != '欠番']
     patients = patients[patients['備考'].str.contains('取り下げ', na=False) == False]
+    patients = patients[patients['判明日'] != '−']
     patients = patients[patients['判明日'] != '-']
     patients = patients[patients['判明日'] != '―']
     patients = patients[patients['判明日'] != '非公表']
@@ -198,7 +199,7 @@ def get_patients():
     patients['性別'] = patients['性別'].str.replace('非公表', '', regex=True)
     patients['性別'] = patients['性別'].str.replace('長岡市', '', regex=True)
 
-    patients['職業'] = patients['職業'].str.replace('[-―－]', '非公表', regex=True)
+    patients['職業'] = patients['職業'].str.replace('[-−―－]', '非公表', regex=True)
     patients['職業'] = patients['職業'].str.replace('非公表', '', regex=True)
 
     return patients
