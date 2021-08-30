@@ -174,6 +174,7 @@ def get_patients():
     
     patients = patients[patients['患者No.'] != '欠番']
     patients = patients[patients['備考'].str.contains('取り下げ', na=False) == False]
+    patients = patients[patients['判明日'] != '−']
     patients = patients[patients['判明日'] != '-']
     patients = patients[patients['判明日'] != '―']
     patients = patients[patients['判明日'] != '非公表']
@@ -190,15 +191,16 @@ def get_patients():
     patients['年代'] = patients['年代'].str.replace(' ', '', regex=True)
     patients['年代'] = patients['年代'].str.replace('[-―－]', '非公表', regex=True)
     patients['年代'] = patients['年代'].str.replace('非公表', '', regex=True)
+    patients['年代'] = patients['年代'].str.replace('10歳代未満', '10歳未満', regex=True)
+    patients['年代'] = patients['年代'].str.replace('90歳以上', '90歳代', regex=True)
     patients['年代'] = patients['年代'].str.replace('90歳代以上', '90歳代', regex=True)
-    patients['年代'] = patients['年代'].str.replace('90歳代', '90歳代以上', regex=True)
-    patients['年代'] = patients['年代'].str.replace('90歳以上', '90歳代以上', regex=True)
+    patients['年代'] = patients['年代'].str.replace('90歳代', '90歳以上', regex=True)
 
     patients['性別'] = patients['性別'].str.replace('[-―－]', '非公表', regex=True)
     patients['性別'] = patients['性別'].str.replace('非公表', '', regex=True)
     patients['性別'] = patients['性別'].str.replace('長岡市', '', regex=True)
 
-    patients['職業'] = patients['職業'].str.replace('[-―－]', '非公表', regex=True)
+    patients['職業'] = patients['職業'].str.replace('[-−―－]', '非公表', regex=True)
     patients['職業'] = patients['職業'].str.replace('非公表', '', regex=True)
 
     return patients
@@ -309,7 +311,15 @@ def create_positive_patients():
     positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('.*[(（]', '', regex=True)
     positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('[)）]', '', regex=True)
     positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('.*:', '', regex=True)
+
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('保健所管内', '保健所')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('保健所', '市')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('新潟市内滞在中', '市内滞在中')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('市内滞在中', '新潟市滞在')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('滞在', '')
+
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市中', '新潟市')
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('上越市中', '上越市')
 
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('北区', '新潟市北区')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('東区', '新潟市東区')
@@ -322,19 +332,6 @@ def create_positive_patients():
 
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('聖篭町', '聖籠町')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市江新潟市南区', '新潟市江南区')
-
-    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市内中', '新潟市')
-    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市中', '新潟市')
-    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('市内中', '新潟市')
-    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('上越市中', '上越市')
-
-    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('村上保健所管内', '村上市')
-    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新発田保健所管内', '新発田市')
-    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('三条保健所管内', '三条市')
-    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('長岡保健所管内', '長岡市')
-    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('柏崎保健所', '柏崎市')
-    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('柏崎保健所管内', '柏崎市')
-    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('南魚沼保健所管内', '南魚沼市')
 
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('北海道', '')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('埼玉県', '')
