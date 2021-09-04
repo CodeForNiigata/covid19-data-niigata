@@ -319,6 +319,7 @@ def create_positive_patients():
     positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('市内滞在中', '新潟市滞在')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].str.replace('滞在', '')
 
+    positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市内', '新潟市')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('新潟市中', '新潟市')
     positive_patient['市区町村名'] = positive_patient['市区町村名'].replace('上越市中', '上越市')
 
