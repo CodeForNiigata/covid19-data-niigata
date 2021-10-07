@@ -81,29 +81,16 @@ def _7columns(page):
     return page
 
 def _8columns(page):
-    page = pd.concat([page, page['患者 No.'].str.split(' ', expand=True)], axis=1).drop('患者 No.', axis=1)
     page.columns = [
+        '患者No.',
+        '_',
         '判明日',
         '年代',
         '性別',
         '居住地',
         '職業',
-        '濃厚接触者数',
         '備考',
-        '患者No.',
-        '_',
     ]
-    page = page[[
-        '患者No.',
-        '_',
-        '判明日',
-        '年代',
-        '性別',
-        '居住地',
-        '職業',
-        '濃厚接触者数',
-        '備考',
-    ]]
     return page
 
 def _9columns(page):
