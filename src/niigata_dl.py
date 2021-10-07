@@ -1,4 +1,6 @@
 from bs4 import BeautifulSoup
+import glob
+import os
 import re
 import urllib.error
 import urllib.request
@@ -29,6 +31,9 @@ def download_page():
 
 
 def download_patients():
+    for file in glob.glob('dist/pdf/*.pdf'):
+        os.remove(file)
+
     with open(latest_path) as file:
         soup = BeautifulSoup(file, 'html.parser')
     pattern = re.compile('県内における感染者の発生状況.*\[PDFファイル／.*\]')
