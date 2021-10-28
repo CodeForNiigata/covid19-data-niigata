@@ -81,7 +81,32 @@ def _7columns(page):
     return page
 
 def _8columns(page):
-    page.columns = [
+    if page.columns[7] == '備考':
+        page = pd.concat([page, page['患者 No.'].str.split(' ', expand=True)], axis=1).drop('患者 No.', axis=1)
+        page.columns = [
+            '判明日',
+            '年代',
+            '性別',
+            '居住地',
+            '職業',
+            '備考',
+            '_1',
+            '患者No.',
+            '_',
+        ]
+    else:
+        page.columns = [
+            '患者No.',
+            '_',
+            '判明日',
+            '年代',
+            '性別',
+            '居住地',
+            '職業',
+            '備考',
+        ]
+
+    page = page[[
         '患者No.',
         '_',
         '判明日',
@@ -90,11 +115,38 @@ def _8columns(page):
         '居住地',
         '職業',
         '備考',
-    ]
+    ]]
     return page
 
 def _9columns(page):
-    page.columns = [
+    page = pd.concat([page, page['患者 No.'].str.split(' ', expand=True)], axis=1).drop('患者 No.', axis=1)
+    if page.columns[3] == '性別':
+        page.columns = [
+            '判明日',
+            '年代',
+            '_1',
+            '性別',
+            '居住地',
+            '_2',
+            '職業',
+            '備考',
+            '患者No.',
+            '_',
+        ]
+    else:
+        page.columns = [
+            '判明日',
+            '年代',
+            '性別',
+            '居住地',
+            '_1',
+            '職業',
+            '_2',
+            '備考',
+            '患者No.',
+            '_',
+        ]
+    page = page[[
         '患者No.',
         '_',
         '判明日',
@@ -102,9 +154,8 @@ def _9columns(page):
         '性別',
         '居住地',
         '職業',
-        '濃厚接触者数',
         '備考',
-    ]
+    ]]
     return page
 
 def _10columns(page):
@@ -155,6 +206,20 @@ def get_patients():
 
     patients = pd.concat(tables)
 
+    # HACK for No.722
+    patients = patients[patients['患者No.'] != '県内感染者の濃厚接触者']
+    patients = patients.append({
+        '患者No.': '722',
+        '_': '新潟県419例目',
+        '判明日': '1月13日',
+        '年代': '10歳代',
+        '性別': '女性',
+        '居住地': '長岡保健所管内（長岡市）',
+        '職業': '学生',
+        '備考': '県内感染者の濃厚接触者',
+    }, ignore_index=True)
+
+
     patients['患者No.'] = patients['患者No.'].astype(int)
     patients = patients.sort_values('患者No.')
     patients = patients.reset_index(drop=True)
@@ -168,6 +233,7 @@ def get_patients():
 
     patients['判明日'] = patients['判明日'].str.replace('5日4日', '5月4日', regex=True)
     patients['判明日'] = patients['判明日'].str.replace('[(（].*曜日[)）]', '', regex=True)
+    patients['判明日'] = patients['判明日'].str.strip()
     patients.loc[patients['患者No.'] < 548, '判明日'] = '2020年' + patients['判明日']
     patients.loc[patients['患者No.'] >= 548, '判明日'] = '2021年' + patients['判明日']
     patients['判明日'] = pd.to_datetime(patients['判明日'], format='%Y年%m月%d日')
